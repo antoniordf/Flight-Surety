@@ -42,5 +42,8 @@
     "webpack-cli": "^5.0.2",
     "webpack-dev-server": "4.13.3",
     "webpack-node-externals": "3.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3"
   }
 }
