@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.19;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
@@ -68,7 +70,7 @@ contract FlightSuretyApp {
      * @dev Contract constructor
      *
      */
-    constructor() public {
+    constructor() {
         contractOwner = msg.sender;
     }
 
