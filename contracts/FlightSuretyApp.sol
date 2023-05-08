@@ -300,3 +300,22 @@ contract FlightSuretyApp {
 
     // endregion
 }
+
+// Interface with data contract
+interface IFlightSuretyData {
+    function registerAirline() external;
+
+    function buy() external payable;
+
+    function creditInsurees() external;
+
+    function pay() external;
+
+    function fund() external payable;
+
+    function getFlightKey(
+        address airline,
+        string memory flight,
+        uint256 timestamp
+    ) external returns (bytes32);
+}

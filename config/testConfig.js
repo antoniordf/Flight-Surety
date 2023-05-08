@@ -21,7 +21,7 @@ const Config = async function (accounts) {
   let firstAirline = accounts[1];
 
   let flightSuretyData = await FlightSuretyData.new();
-  let flightSuretyApp = await FlightSuretyApp.new();
+  let flightSuretyApp = await FlightSuretyApp.new(); // This should take the address of the deployed FlightSuretyData contract.
 
   return {
     owner: owner,
