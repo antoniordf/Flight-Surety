@@ -131,6 +131,7 @@ contract FlightSuretyData {
             isRegistered: true,
             hasFunded: false
         });
+        airlineCounter++;
     }
 
     /**
