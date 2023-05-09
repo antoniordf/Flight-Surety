@@ -27,6 +27,7 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     address private contractOwner; // Account used to deploy contract
+    IFlightSuretyData private flightSuretyData;
 
     struct Flight {
         bool isRegistered;
@@ -70,8 +71,10 @@ contract FlightSuretyApp {
      * @dev Contract constructor
      *
      */
-    constructor() {
+    constructor(address dataContractAddress) {
         contractOwner = msg.sender;
+        flightSuretyData = IFlightSuretyData(dataContractAddress);
+        flightSuretyData.registerAirline(msg.sender);
     }
 
     /********************************************************************************************/
@@ -303,7 +306,7 @@ contract FlightSuretyApp {
 
 // Interface with data contract
 interface IFlightSuretyData {
-    function registerAirline() external;
+    function registerAirline(address airline) external;
 
     function buy() external payable;
 

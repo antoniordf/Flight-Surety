@@ -102,7 +102,19 @@ contract FlightSuretyData {
      *      Can only be called from FlightSuretyApp contract
      *
      */
-    function registerAirline() external pure {}
+    function registerAirline(
+        address airline
+    ) external requireIsOperational requireContractOwner {
+        require(
+            airlines[airline].airlineAddress == address(0),
+            "Airline already exists"
+        );
+        airlines[airline] = Airline({
+            airlineAddress: airline,
+            isRegistered: true,
+            hasFunded: false
+        });
+    }
 
     /**
      * @dev Buy insurance for a flight
