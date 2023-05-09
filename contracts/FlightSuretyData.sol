@@ -13,6 +13,7 @@ contract FlightSuretyData {
 
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
+    uint256 airlineCounter = 0; // Counter to keep track of how many airlines were added.
 
     struct Passenger {
         address passengerAddress;
@@ -71,6 +72,17 @@ contract FlightSuretyData {
         _;
     }
 
+    /**
+     * @dev Modifier that requires the function caller to be an existing airline
+     */
+    modifier requireExistingAirline(address _caller) {
+        require(
+            airlines[_caller].airlineAddress != address(0),
+            "Caller is not an existing airline"
+        );
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -104,7 +116,12 @@ contract FlightSuretyData {
      */
     function registerAirline(
         address airline
-    ) external requireIsOperational requireContractOwner {
+    )
+        external
+        requireIsOperational
+        requireContractOwner
+        requireExistingAirline(msg.sender)
+    {
         require(
             airlines[airline].airlineAddress == address(0),
             "Airline already exists"
