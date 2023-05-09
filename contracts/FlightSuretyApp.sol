@@ -315,7 +315,7 @@ interface IFlightSuretyData {
 
     function getFlightKey(
         address airline,
-        string memory flight,
+        string calldata flight,
         uint256 timestamp
     ) external returns (bytes32);
 }

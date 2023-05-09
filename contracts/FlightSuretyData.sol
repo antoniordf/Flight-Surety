@@ -14,6 +14,26 @@ contract FlightSuretyData {
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
 
+    struct Passenger {
+        address passengerAddress;
+        uint256 credit;
+    }
+    mapping(address => Passenger) private passengers;
+
+    struct Airline {
+        address airlineAddress;
+        bool isRegistered;
+        bool hasFunded;
+    }
+    mapping(address => Airline) private airlines;
+
+    // Mapping flightKey to the list of passengers who bought insurance for that flight
+    mapping(bytes32 => address[]) private flightInsurees;
+
+    // Mapping flightKey and passenger to the amount they insured for that flight
+    mapping(bytes32 => mapping(address => uint256))
+        private flightInsuranceAmounts;
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
