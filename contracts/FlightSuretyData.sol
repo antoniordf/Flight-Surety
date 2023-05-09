@@ -116,12 +116,7 @@ contract FlightSuretyData {
      */
     function registerAirline(
         address airline
-    )
-        external
-        requireIsOperational
-        requireContractOwner
-        requireExistingAirline(msg.sender)
-    {
+    ) external requireIsOperational requireExistingAirline(msg.sender) {
         require(
             airlines[airline].airlineAddress == address(0),
             "Airline already exists"
