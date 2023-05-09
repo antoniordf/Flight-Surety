@@ -13,7 +13,11 @@ contract FlightSuretyData {
 
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
-    uint256 airlineCounter = 0; // Counter to keep track of how many airlines were added.
+    uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
+    uint M = airlineCounter / 2; // M is the threshold for multiparty consensus and it is set to be 50% of airlines.
+
+    // A variable address aray initialized with length zero, used to keep track of all the addresses that have called a function requiring multi-party consensus.
+    address[] multiCalls = new address[](0);
 
     struct Passenger {
         address passengerAddress;
@@ -77,7 +81,7 @@ contract FlightSuretyData {
      */
     modifier requireExistingAirline(address _caller) {
         require(
-            airlines[_caller].airlineAddress != address(0),
+            airlines[_caller].isRegistered == true,
             "Caller is not an existing airline"
         );
         _;
@@ -103,6 +107,31 @@ contract FlightSuretyData {
      */
     function setOperatingStatus(bool mode) external requireContractOwner {
         operational = mode;
+    }
+
+    /**
+     * @dev re-usable function to implement multi-party consensus
+     * Function is a placeholder and needs to me modified to remove the loop from the smart contract and place it in the client side
+     */
+    function submitVote()
+        external
+        requireIsOperational
+        requireExistingAirline(msg.sender)
+        returns (bool)
+    {
+        bool isDuplicate = false;
+        for (uint c = 0; c < multiCalls.length; c++) {
+            if (multiCalls[c] == msg.sender) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        require(!isDuplicate, "Caller has already called this function");
+        if (multiCalls.length >= M) {
+            multiCalls = new address[](0);
+            return true;
+        }
+        return false;
     }
 
     /********************************************************************************************/
