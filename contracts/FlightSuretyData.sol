@@ -125,7 +125,7 @@ contract FlightSuretyData {
         bytes32 proposalId,
         address voter
     )
-        internal
+        public
         requireIsOperational
         requireExistingAirline(msg.sender)
         returns (bool)

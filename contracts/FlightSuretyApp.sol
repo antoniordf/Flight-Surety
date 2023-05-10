@@ -308,7 +308,7 @@ contract FlightSuretyApp {
 interface IFlightSuretyData {
     function registerAirline(address airline) external;
 
-    function submitVote() external returns (bool);
+    function vote(bytes32 proposalId, address voter) external returns (bool);
 
     function buy() external payable;
 
