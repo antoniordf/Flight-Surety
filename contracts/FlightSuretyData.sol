@@ -15,6 +15,7 @@ contract FlightSuretyData {
     bool private operational = true; // Blocks all state changes throughout the contract if false
     uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
     uint M = airlineCounter / 2; // M is the threshold for multiparty consensus and it is set to be 50% of airlines.
+    uint public voteDuration = 1 hours; // Set the vote duration (e.g., 1 hour)
 
     // A variable address aray initialized with length zero, used to keep track of all the addresses that have called a function requiring multi-party consensus.
     address[] multiCalls = new address[](0);
@@ -31,6 +32,13 @@ contract FlightSuretyData {
         bool hasFunded;
     }
     mapping(address => Airline) private airlines;
+
+    struct Proposal {
+        uint votes;
+        uint timestamp;
+        mapping(address => bool) voters;
+    }
+    mapping(bytes32 => Proposal) private proposals;
 
     // Mapping flightKey to the list of passengers who bought insurance for that flight
     mapping(bytes32 => address[]) private flightInsurees;
@@ -50,6 +58,11 @@ contract FlightSuretyData {
     constructor() {
         contractOwner = msg.sender;
     }
+
+    // events
+    event ProposalCreated(bytes32 indexed proposalId);
+    event ProposalPassed(bytes32 indexed proposalId);
+    event ProposalExpired(bytes32 indexed proposalId);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -111,27 +124,29 @@ contract FlightSuretyData {
 
     /**
      * @dev re-usable function to implement multi-party consensus
-     * Function is a placeholder and needs to me modified to remove the loop from the smart contract and place it in the client side
      */
-    function submitVote()
-        external
+    function vote(
+        bytes32 proposalId,
+        address voter
+    )
+        internal
         requireIsOperational
         requireExistingAirline(msg.sender)
         returns (bool)
     {
-        bool isDuplicate = false;
-        for (uint c = 0; c < multiCalls.length; c++) {
-            if (multiCalls[c] == msg.sender) {
-                isDuplicate = true;
-                break;
-            }
-        }
-        require(!isDuplicate, "Caller has already called this function");
-        if (multiCalls.length >= M) {
-            multiCalls = new address[](0);
+        Proposal storage proposal = proposals[proposalId];
+        require(
+            !proposal.voters[voter],
+            "Caller has already voted on this proposal"
+        );
+        proposal.voters[voter] = true;
+        proposal.votes++;
+
+        if (proposal.votes >= airlineCounter / 2) {
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     /********************************************************************************************/
@@ -145,17 +160,58 @@ contract FlightSuretyData {
      */
     function registerAirline(
         address airline
-    ) external requireIsOperational requireExistingAirline(msg.sender) {
+    )
+        external
+        requireIsOperational
+        requireExistingAirline(msg.sender)
+        returns (string memory)
+    {
         require(
             airlines[airline].airlineAddress == address(0),
             "Airline already exists"
         );
-        airlines[airline] = Airline({
-            airlineAddress: airline,
-            isRegistered: true,
-            hasFunded: false
-        });
-        airlineCounter++;
+        if (airlineCounter <= 4) {
+            airlines[airline] = Airline({
+                airlineAddress: airline,
+                isRegistered: true,
+                hasFunded: false
+            });
+            airlineCounter++;
+            return "Airline registered successfully";
+        } else {
+            bytes32 proposalId = keccak256(
+                abi.encodePacked("registerAirline", airline)
+            );
+            Proposal storage proposal = proposals[proposalId];
+
+            // Check if the proposal has expired
+            if (
+                proposal.timestamp != 0 &&
+                (block.timestamp - proposal.timestamp) > voteDuration
+            ) {
+                emit ProposalExpired(proposalId);
+                return "Proposal expired";
+            }
+
+            // If the proposal doesn't exist, create it
+            if (proposal.timestamp == 0) {
+                proposal.timestamp = block.timestamp;
+                emit ProposalCreated(proposalId);
+            }
+
+            if (vote(proposalId, msg.sender)) {
+                airlines[airline] = Airline({
+                    airlineAddress: airline,
+                    isRegistered: true,
+                    hasFunded: false
+                });
+                airlineCounter++;
+                emit ProposalPassed(proposalId);
+                return "Consensus reached. Airline registered successfully";
+            } else {
+                return "Vote submitted. Awaiting consensus";
+            }
+        }
     }
 
     /**
