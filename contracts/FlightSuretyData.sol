@@ -119,7 +119,7 @@ contract FlightSuretyData {
     }
 
     /**
-     * @dev re-usable function to implement multi-party consensus
+     * @dev re-usable function to implement multi-party consensus voting
      */
     function vote(
         bytes32 proposalId,
@@ -152,7 +152,8 @@ contract FlightSuretyData {
     /**
      * @dev Add an airline to the registration queue
      *      Can only be called from FlightSuretyApp contract
-     *
+     *      The function needs to be called once to create the proposal to add the airline, and then again after
+     *      other airlines have voted and the threshold was reached.
      */
     function registerAirline(
         address airline
