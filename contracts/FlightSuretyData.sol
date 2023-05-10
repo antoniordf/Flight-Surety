@@ -14,11 +14,7 @@ contract FlightSuretyData {
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
     uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
-    uint M = airlineCounter / 2; // M is the threshold for multiparty consensus and it is set to be 50% of airlines.
     uint public voteDuration = 1 hours; // Set the vote duration (e.g., 1 hour)
-
-    // A variable address aray initialized with length zero, used to keep track of all the addresses that have called a function requiring multi-party consensus.
-    address[] multiCalls = new address[](0);
 
     struct Passenger {
         address passengerAddress;
