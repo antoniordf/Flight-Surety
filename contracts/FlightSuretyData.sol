@@ -233,7 +233,10 @@ contract FlightSuretyData {
      *      resulting in insurance payouts, the contract should be self-sustaining
      *
      */
-    function fund() public payable {}
+    function fund() public payable requireExistingAirline(msg.sender) {
+        require(msg.value >= 10 ether, "You should fund at least 10 ether");
+        airlines[msg.sender].hasFunded = true;
+    }
 
     function getFlightKey(
         address airline,
