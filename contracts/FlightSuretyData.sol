@@ -15,7 +15,7 @@ contract FlightSuretyData {
     bool private operational = true; // Blocks all state changes throughout the contract if false
     uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
     uint public voteDuration = 1 hours; // Set the vote duration (e.g., 1 hour)
-    address private flightSuretyApp; // Address of the FlightSuretyApp contract.
+    IFlightSuretyApp private flightSuretyApp; // Address of the FlightSuretyApp contract.
 
     struct Passenger {
         address passengerAddress;
@@ -54,7 +54,7 @@ contract FlightSuretyData {
      */
     constructor(address _flightSuretyApp) {
         contractOwner = msg.sender;
-        flightSuretyApp = _flightSuretyApp;
+        flightSuretyApp = IFlightSuretyApp(_flightSuretyApp);
     }
 
     // events
@@ -101,7 +101,7 @@ contract FlightSuretyData {
     // Modifier to ensure that only FlightSuretyApp contract can call the function
     modifier onlyFlightSuretyApp() {
         require(
-            msg.sender == flightSuretyApp,
+            msg.sender == address(flightSuretyApp),
             "Caller is not the FlightSuretyApp contract"
         );
         _;
@@ -135,7 +135,7 @@ contract FlightSuretyData {
     function setAppContract(
         address _flightSuretyApp
     ) external requireContractOwner {
-        flightSuretyApp = _flightSuretyApp;
+        flightSuretyApp = IFlightSuretyApp(_flightSuretyApp);
     }
 
     /**
@@ -169,9 +169,9 @@ contract FlightSuretyData {
      * @dev function so that we can check if an airline is registered from the app contract
      */
     function isRegisterredAirline(
-        address airline
+        address _airline
     ) external view returns (bool) {
-        return airlines[airline].isRegistered;
+        return airlines[_airline].isRegistered;
     }
 
     /********************************************************************************************/
@@ -256,7 +256,19 @@ contract FlightSuretyData {
      * @dev Buy insurance for a flight
      *
      */
-    function buy() external payable {}
+    function buy(bytes32 _flightKey) external payable {
+        require(
+            flightSuretyApp.isRegisteredFlight(_flightKey),
+            "Flight not found!"
+        );
+        require(
+            flightInsuranceAmounts[_flightKey][msg.sender] == 0,
+            "You already bought insurance."
+        );
+        require(msg.value <= 1 ether, "You can only insure up to 1 ether");
+        flightInsurees[_flightKey].push(msg.sender);
+        flightInsuranceAmounts[_flightKey][msg.sender] = msg.value;
+    }
 
     /**
      *  @dev Credits payouts to insurees
@@ -294,4 +306,10 @@ contract FlightSuretyData {
     receive() external payable {
         fund();
     }
+}
+
+interface IFlightSuretyApp {
+    function isRegisteredFlight(
+        bytes32 _flightKey
+    ) external view returns (bool);
 }

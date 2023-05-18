@@ -85,6 +85,15 @@ contract FlightSuretyApp {
         return true; // Modify to call data contract's status
     }
 
+    /**
+     * @dev function so that we can check if a flight is registered from the data contract
+     */
+    function isRegisteredFlight(
+        bytes32 _flightKey
+    ) external view returns (bool) {
+        return flights[_flightKey].isRegistered;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
