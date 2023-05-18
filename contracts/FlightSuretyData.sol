@@ -165,6 +165,15 @@ contract FlightSuretyData {
         }
     }
 
+    /**
+     * @dev function so that we can check if an airline is registered from the app contract
+     */
+    function isRegisterredAirline(
+        address airline
+    ) external view returns (bool) {
+        return airlines[airline].isRegistered;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/

@@ -104,7 +104,22 @@ contract FlightSuretyApp {
      * @dev Register a future flight for insuring.
      *
      */
-    function registerFlight() external pure {}
+    function registerFlight(
+        string memory _flight,
+        uint256 _timestamp
+    ) external {
+        require(
+            flightSuretyData.isRegisteredAirline(msg.sender),
+            "Caller is not a registered airline"
+        );
+        bytes32 flightKey = getFlightKey(msg.sender, _flight, _timestamp);
+        flights[flightKey] = Flight({
+            isRegistered: true,
+            statusCode: 0,
+            updatedTimestamp: _timestamp,
+            airline: msg.sender
+        });
+    }
 
     /**
      * @dev Called after oracle has updated flight status
@@ -306,6 +321,8 @@ contract FlightSuretyApp {
 // Interface with data contract
 interface IFlightSuretyData {
     function registerAirline(address airline) external returns (bool, uint256);
+
+    function isRegisteredAirline(address airline) external view returns (bool);
 
     function vote(bytes32 proposalId, address voter) external returns (bool);
 
