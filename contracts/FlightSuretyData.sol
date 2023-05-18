@@ -134,7 +134,7 @@ contract FlightSuretyData {
      */
     function setAppContract(
         address _flightSuretyApp
-    ) external onlyFlightSuretyApp {
+    ) external requireContractOwner {
         flightSuretyApp = _flightSuretyApp;
     }
 
