@@ -15,6 +15,7 @@ contract FlightSuretyData {
     bool private operational = true; // Blocks all state changes throughout the contract if false
     uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
     uint public voteDuration = 1 hours; // Set the vote duration (e.g., 1 hour)
+    address private flightSuretyApp; // Address of the FlightSuretyApp contract.
 
     struct Passenger {
         address passengerAddress;
@@ -51,8 +52,9 @@ contract FlightSuretyData {
      * @dev Constructor
      *      The deploying account becomes contractOwner
      */
-    constructor() {
+    constructor(address _flightSuretyApp) {
         contractOwner = msg.sender;
+        flightSuretyApp = _flightSuretyApp;
     }
 
     // events
@@ -92,6 +94,15 @@ contract FlightSuretyData {
         require(
             airlines[_caller].isRegistered == true,
             "Caller is not an existing airline"
+        );
+        _;
+    }
+
+    // Modifier to ensure that only FlightSuretyApp contract can call the function
+    modifier onlyFlightSuretyApp() {
+        require(
+            msg.sender == flightSuretyApp,
+            "Caller is not the FlightSuretyApp contract"
         );
         _;
     }
@@ -160,8 +171,9 @@ contract FlightSuretyData {
     )
         external
         requireIsOperational
+        onlyFlightSuretyApp
         requireExistingAirline(msg.sender)
-        returns (string memory)
+        returns (bool success, uint256 votes)
     {
         require(
             airlines[airline].airlineAddress == address(0),
@@ -174,7 +186,9 @@ contract FlightSuretyData {
                 hasFunded: false
             });
             airlineCounter++;
-            return "Airline registered successfully";
+            success = true;
+            votes = 0; // No votes required if there are less than or equal to 4 airlines
+            return (success, votes);
         } else {
             bytes32 proposalId = keccak256(
                 abi.encodePacked("registerAirline", airline)
@@ -187,7 +201,9 @@ contract FlightSuretyData {
                 (block.timestamp - proposal.timestamp) > voteDuration
             ) {
                 emit ProposalExpired(proposalId);
-                return "Proposal expired";
+                success = false;
+                votes = proposal.votes;
+                return (success, votes);
             }
 
             // If the proposal doesn't exist, create it
@@ -196,7 +212,12 @@ contract FlightSuretyData {
                 emit ProposalCreated(proposalId);
             }
 
-            if (vote(proposalId, msg.sender)) {
+            // Now we simply record the vote without checking for consensus here
+            vote(proposalId, msg.sender);
+            votes = proposal.votes;
+
+            // Instead, we check for consensus here
+            if (votes >= airlineCounter / 2) {
                 airlines[airline] = Airline({
                     airlineAddress: airline,
                     isRegistered: true,
@@ -204,9 +225,11 @@ contract FlightSuretyData {
                 });
                 airlineCounter++;
                 emit ProposalPassed(proposalId);
-                return "Consensus reached. Airline registered successfully";
+                success = true;
+                return (success, votes);
             } else {
-                return "Vote submitted. Awaiting consensus";
+                success = false; // Not enough votes yet
+                return (success, votes);
             }
         }
     }
