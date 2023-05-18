@@ -61,6 +61,7 @@ contract FlightSuretyData {
     event ProposalCreated(bytes32 indexed proposalId);
     event ProposalPassed(bytes32 indexed proposalId);
     event ProposalExpired(bytes32 indexed proposalId);
+    event InsuranceBought(bytes32 indexed flightKey);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -268,6 +269,7 @@ contract FlightSuretyData {
         require(msg.value <= 1 ether, "You can only insure up to 1 ether");
         flightInsurees[_flightKey].push(msg.sender);
         flightInsuranceAmounts[_flightKey][msg.sender] = msg.value;
+        emit InsuranceBought(_flightKey);
     }
 
     /**
