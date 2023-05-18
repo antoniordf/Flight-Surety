@@ -130,6 +130,15 @@ contract FlightSuretyData {
     }
 
     /**
+     * @dev Sets address for the App contract once that contract is deployed
+     */
+    function setAppContract(
+        address _flightSuretyApp
+    ) external onlyFlightSuretyApp {
+        flightSuretyApp = _flightSuretyApp;
+    }
+
+    /**
      * @dev re-usable function to implement multi-party consensus voting
      */
     function vote(
