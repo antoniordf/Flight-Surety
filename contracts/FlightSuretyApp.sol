@@ -96,9 +96,8 @@ contract FlightSuretyApp {
     function registerAirline(
         address _airline
     ) external returns (bool success, uint256 votes) {
-        flightSuretyData.registerAirline(_airline);
-        success = true;
-        return (success, 0);
+        (success, votes) = flightSuretyData.registerAirline(_airline);
+        return (success, votes);
     }
 
     /**
@@ -306,7 +305,7 @@ contract FlightSuretyApp {
 
 // Interface with data contract
 interface IFlightSuretyData {
-    function registerAirline(address airline) external returns (string memory);
+    function registerAirline(address airline) external returns (bool, uint256);
 
     function vote(bytes32 proposalId, address voter) external returns (bool);
 
