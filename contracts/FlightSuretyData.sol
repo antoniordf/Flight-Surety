@@ -52,9 +52,8 @@ contract FlightSuretyData {
      * @dev Constructor
      *      The deploying account becomes contractOwner
      */
-    constructor(address _flightSuretyApp) {
+    constructor() {
         contractOwner = msg.sender;
-        flightSuretyApp = IFlightSuretyApp(_flightSuretyApp);
     }
 
     // events
@@ -187,13 +186,7 @@ contract FlightSuretyData {
      */
     function registerAirline(
         address airline
-    )
-        external
-        requireIsOperational
-        onlyFlightSuretyApp
-        requireExistingAirline(msg.sender)
-        returns (bool success, uint256 votes)
-    {
+    ) external requireIsOperational returns (bool success, uint256 votes) {
         require(
             airlines[airline].airlineAddress == address(0),
             "Airline already exists"
@@ -209,6 +202,10 @@ contract FlightSuretyData {
             votes = 0; // No votes required if there are less than or equal to 4 airlines
             return (success, votes);
         } else {
+            require(
+                airlines[msg.sender].isRegistered == true,
+                "Caller is not an existing airline"
+            );
             bytes32 proposalId = keccak256(
                 abi.encodePacked("registerAirline", airline)
             );

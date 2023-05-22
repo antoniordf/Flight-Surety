@@ -73,10 +73,11 @@ contract FlightSuretyApp {
      * @dev Contract constructor
      *
      */
-    constructor(address dataContractAddress) {
+    constructor(address dataContractAddress, address firstAirline) {
         contractOwner = msg.sender;
         flightSuretyData = IFlightSuretyData(dataContractAddress);
-        flightSuretyData.registerAirline(msg.sender);
+        // flightSuretyData.setAppContract(address(this));
+        flightSuretyData.registerAirline(firstAirline);
     }
 
     /********************************************************************************************/
@@ -356,6 +357,8 @@ contract FlightSuretyApp {
 
 // Interface with data contract
 interface IFlightSuretyData {
+    function setAppContract(address _flightSuretyApp) external;
+
     function registerAirline(address airline) external returns (bool, uint256);
 
     function isRegisteredAirline(address airline) external view returns (bool);
