@@ -362,17 +362,5 @@ interface IFlightSuretyData {
 
     function vote(bytes32 proposalId, address voter) external returns (bool);
 
-    function buy() external payable;
-
     function creditInsurees(bytes32 _flightKey) external;
-
-    function pay() external;
-
-    function fund() external payable;
-
-    function getFlightKey(
-        address airline,
-        string calldata flight,
-        uint256 timestamp
-    ) external returns (bytes32);
 }
