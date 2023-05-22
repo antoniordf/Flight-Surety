@@ -37,6 +37,8 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    mapping(bytes32 => bytes32) private flightKeys;
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -122,6 +124,8 @@ contract FlightSuretyApp {
             "Caller is not a registered airline"
         );
         bytes32 flightKey = getFlightKey(msg.sender, _flight, _timestamp);
+        bytes32 lookupKey = keccak256(abi.encodePacked(msg.sender, _flight)); // This assumes msg.sender is the airline who owns the flight that is being registerred.
+        flightKeys[lookupKey] = flightKey;
         flights[flightKey] = Flight({
             isRegistered: true,
             statusCode: 0,
@@ -139,7 +143,20 @@ contract FlightSuretyApp {
         string memory flight,
         uint256 timestamp,
         uint8 statusCode
-    ) internal pure {}
+    ) internal {
+        if (statusCode == 20) {
+            bytes32 lookupKey = keccak256(abi.encodePacked(airline, flight));
+            bytes32 flightKey = flightKeys[lookupKey];
+            require(
+                flights[flightKey].isRegistered,
+                "Flight is not registerred"
+            );
+            flights[flightKey].statusCode = statusCode;
+            flights[flightKey].updatedTimestamp = timestamp;
+
+            flightSuretyData.creditInsurees(flightKey);
+        }
+    }
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
@@ -337,7 +354,7 @@ interface IFlightSuretyData {
 
     function buy() external payable;
 
-    function creditInsurees() external;
+    function creditInsurees(bytes32 _flightKey) external;
 
     function pay() external;
 

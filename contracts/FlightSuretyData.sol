@@ -275,7 +275,14 @@ contract FlightSuretyData {
     /**
      *  @dev Credits payouts to insurees
      */
-    function creditInsurees() external pure {}
+    function creditInsurees(bytes32 _flightKey) external {
+        for (uint i = 0; i < flightInsurees[_flightKey].length; i++) {
+            address passengerAddress = flightInsurees[_flightKey][i];
+            passengers[passengerAddress].credit =
+                (flightInsuranceAmounts[_flightKey][passengerAddress] * 3) /
+                2;
+        }
+    }
 
     /**
      *  @dev Transfers eligible payout funds to insuree
