@@ -96,6 +96,16 @@ contract FlightSuretyApp {
         return flights[_flightKey].isRegistered;
     }
 
+    /**
+     * @dev function so that we can check if a flight is delayed from the data contract
+     */
+    function isDelayedFlight(bytes32 _flightKey) external view returns (bool) {
+        if (flights[_flightKey].statusCode == 20) {
+            return true;
+        }
+        return false;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/

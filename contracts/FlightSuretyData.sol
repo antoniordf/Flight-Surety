@@ -273,9 +273,9 @@ contract FlightSuretyData {
     }
 
     /**
-     *  @dev Credits payouts to insurees
+     *  @dev Credits payouts to insurees. Credit is equal to 1.5 x the insurance amount bought.
      */
-    function creditInsurees(bytes32 _flightKey) external {
+    function creditInsurees(bytes32 _flightKey) external onlyFlightSuretyApp {
         for (uint i = 0; i < flightInsurees[_flightKey].length; i++) {
             address passengerAddress = flightInsurees[_flightKey][i];
             passengers[passengerAddress].credit =
@@ -288,7 +288,23 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
      */
-    function pay() external pure {}
+    function pay(bytes32 _flightKey) external {
+        require(
+            passengers[msg.sender].passengerAddress != address(0),
+            "You are not a passenger."
+        );
+        require(
+            flightSuretyApp.isRegisteredFlight(_flightKey),
+            "Flight is not registered"
+        );
+        require(
+            flightSuretyApp.isDelayedFlight(_flightKey),
+            "This flight is not delayed"
+        );
+        uint totalCredit = passengers[msg.sender].credit;
+        passengers[msg.sender].credit = 0;
+        payable(msg.sender).transfer(totalCredit);
+    }
 
     /**
      * @dev Initial funding for the insurance. Unless there are too many delayed flights
@@ -321,4 +337,6 @@ interface IFlightSuretyApp {
     function isRegisteredFlight(
         bytes32 _flightKey
     ) external view returns (bool);
+
+    function isDelayedFlight(bytes32 _flightKey) external view returns (bool);
 }
