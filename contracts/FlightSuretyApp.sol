@@ -184,20 +184,20 @@ contract FlightSuretyApp {
      *
      */
     function processFlightStatus(
-        address airline,
-        string memory flight,
-        uint256 timestamp,
-        uint8 statusCode
+        address _airline,
+        string memory _flight,
+        uint256 _timestamp,
+        uint8 _statusCode
     ) internal {
-        if (statusCode == 20) {
-            bytes32 lookupKey = keccak256(abi.encodePacked(airline, flight));
+        if (_statusCode == 20) {
+            bytes32 lookupKey = keccak256(abi.encodePacked(_airline, _flight));
             bytes32 flightKey = flightKeys[lookupKey];
             require(
                 flights[flightKey].isRegistered,
                 "Flight is not registerred"
             );
-            flights[flightKey].statusCode = statusCode;
-            flights[flightKey].updatedTimestamp = timestamp;
+            flights[flightKey].statusCode = _statusCode;
+            flights[flightKey].updatedTimestamp = _timestamp;
 
             flightSuretyData.creditInsurees(flightKey);
         }
@@ -205,20 +205,20 @@ contract FlightSuretyApp {
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
-        address airline,
-        string memory flight,
-        uint256 timestamp
+        address _airline,
+        string memory _flight,
+        uint256 _timestamp
     ) external {
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(
-            abi.encodePacked(index, airline, flight, timestamp)
+            abi.encodePacked(index, _airline, _flight, _timestamp)
         );
         oracleResponses[key].requester = msg.sender;
         oracleResponses[key].isOpen = true;
 
-        emit OracleRequest(index, airline, flight, timestamp);
+        emit OracleRequest(index, _airline, _flight, _timestamp);
     }
 
     // region ORACLE MANAGEMENT

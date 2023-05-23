@@ -144,15 +144,15 @@ contract FlightSuretyData {
      * @dev re-usable function to implement multi-party consensus voting
      */
     function vote(
-        bytes32 proposalId,
-        address voter
+        bytes32 _proposalId,
+        address _voter
     ) internal requireIsOperational returns (bool) {
-        Proposal storage proposal = proposals[proposalId];
+        Proposal storage proposal = proposals[_proposalId];
         require(
-            !proposal.voters[voter],
+            !proposal.voters[_voter],
             "Caller has already voted on this proposal"
         );
-        proposal.voters[voter] = true;
+        proposal.voters[_voter] = true;
         proposal.votes++;
 
         if (proposal.votes >= airlineCounter / 2) {
@@ -171,8 +171,8 @@ contract FlightSuretyData {
         return airlines[_airline].isRegistered;
     }
 
-    function isPassenger(address passenger) public view returns (bool) {
-        if (passengers[passenger].passengerAddress != address(0)) {
+    function isPassenger(address _passenger) public view returns (bool) {
+        if (passengers[_passenger].passengerAddress != address(0)) {
             return true;
         }
         return false;
@@ -203,8 +203,8 @@ contract FlightSuretyData {
      *      other airlines have voted and the threshold was reached.
      */
     function registerAirline(
-        address airline,
-        address caller
+        address _airline,
+        address _caller
     )
         external
         requireIsOperational
@@ -212,12 +212,12 @@ contract FlightSuretyData {
         returns (bool success, uint256 votes)
     {
         require(
-            airlines[airline].airlineAddress == address(0),
+            airlines[_airline].airlineAddress == address(0),
             "Airline already exists"
         );
         if (airlineCounter <= 4) {
-            airlines[airline] = Airline({
-                airlineAddress: airline,
+            airlines[_airline] = Airline({
+                airlineAddress: _airline,
                 isRegistered: true,
                 hasFunded: false
             });
@@ -227,11 +227,11 @@ contract FlightSuretyData {
             return (success, votes);
         } else {
             require(
-                airlines[caller].isRegistered == true,
+                airlines[_caller].isRegistered == true,
                 "Caller is not an existing airline"
             );
             bytes32 proposalId = keccak256(
-                abi.encodePacked("registerAirline", airline)
+                abi.encodePacked("registerAirline", _airline)
             );
             Proposal storage proposal = proposals[proposalId];
 
@@ -258,8 +258,8 @@ contract FlightSuretyData {
 
             // Instead, we check for consensus here
             if (votes >= airlineCounter / 2) {
-                airlines[airline] = Airline({
-                    airlineAddress: airline,
+                airlines[_airline] = Airline({
+                    airlineAddress: _airline,
                     isRegistered: true,
                     hasFunded: false
                 });
@@ -348,11 +348,11 @@ contract FlightSuretyData {
      * @dev Helper function to get the flight key
      */
     function getFlightKey(
-        address airline,
-        string memory flight,
-        uint256 timestamp
+        address _airline,
+        string memory _flight,
+        uint256 _timestamp
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return keccak256(abi.encodePacked(_airline, _flight, _timestamp));
     }
 
     /**
