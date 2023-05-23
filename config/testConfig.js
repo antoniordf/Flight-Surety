@@ -1,7 +1,7 @@
 const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 const FlightSuretyData = artifacts.require("FlightSuretyData");
 const BigNumber = require("bignumber.js");
-const flightSuretyDataAddress = "0xeb9C50C9161f70446D8355486023Dd730Bb85441";
+const flightSuretyDataAddress = "0x0A7c8E5Da3CB0fEdf8cA919ac0902b81D9DA1Cbf";
 
 const Config = async function (accounts) {
   // These test addresses are useful when you need to add

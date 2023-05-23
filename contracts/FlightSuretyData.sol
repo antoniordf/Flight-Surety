@@ -201,6 +201,10 @@ contract FlightSuretyData {
         returns (bool success, uint256 votes)
     {
         require(
+            airlines[_caller].hasFunded == true,
+            "Caller has not funded account"
+        );
+        require(
             airlines[_airline].airlineAddress == address(0),
             "Airline already exists"
         );
@@ -324,7 +328,7 @@ contract FlightSuretyData {
      *      resulting in insurance payouts, the contract should be self-sustaining
      *
      */
-    function fund(address _caller) public payable isAuthorized {
+    function fund(address _caller) external payable isAuthorized {
         require(
             airlines[_caller].isRegistered == true,
             "Caller is not an existing airline"
@@ -349,7 +353,7 @@ contract FlightSuretyData {
      *
      */
     fallback() external {
-        revert("Function does not exist");
+        revert("Something went wrong");
     }
 }
 

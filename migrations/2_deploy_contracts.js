@@ -19,8 +19,14 @@ module.exports = async function (deployer, network, accounts) {
   // set FlightSuretyApp contract as an approved caller
   await flightSuretyData.authorizeCaller(flightSuretyApp.address);
 
+  // fund contract as an approved airline
+  await flightSuretyApp.fund({
+    from: firstAirline,
+    value: web3.utils.toWei("10", "ether"),
+  });
+
   // Add first airline
-  await flightSuretyData.registerAirline(firstAirline, accounts[0]);
+  await flightSuretyApp.registerAirline(firstAirline);
 
   let config = {
     localhost: {
