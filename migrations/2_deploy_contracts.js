@@ -10,15 +10,17 @@ module.exports = async function (deployer, network, accounts) {
   let flightSuretyData = await FlightSuretyData.deployed();
 
   // then deploy FlightSuretyApp
-  await deployer.deploy(
-    FlightSuretyApp,
-    flightSuretyData.address,
-    firstAirline
-  );
+  await deployer.deploy(FlightSuretyApp, flightSuretyData.address);
   let flightSuretyApp = await FlightSuretyApp.deployed();
 
   // set FlightSuretyApp address in FlightSuretyData
   await flightSuretyData.setAppContract(flightSuretyApp.address);
+
+  // set FlightSuretyApp contract as an approved caller
+  await flightSuretyData.authorizeCaller(flightSuretyApp.address);
+
+  // Add first airline
+  await flightSuretyData.registerAirline(firstAirline, accounts[0]);
 
   let config = {
     localhost: {

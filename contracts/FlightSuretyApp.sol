@@ -73,11 +73,9 @@ contract FlightSuretyApp {
      * @dev Contract constructor
      *
      */
-    constructor(address dataContractAddress, address firstAirline) {
+    constructor(address dataContractAddress) {
         contractOwner = msg.sender;
         flightSuretyData = IFlightSuretyData(dataContractAddress);
-        // flightSuretyData.setAppContract(address(this));
-        flightSuretyData.registerAirline(firstAirline);
     }
 
     /********************************************************************************************/
@@ -118,7 +116,10 @@ contract FlightSuretyApp {
     function registerAirline(
         address _airline
     ) external returns (bool success, uint256 votes) {
-        (success, votes) = flightSuretyData.registerAirline(_airline);
+        (success, votes) = flightSuretyData.registerAirline(
+            _airline,
+            msg.sender
+        );
         return (success, votes);
     }
 
@@ -143,6 +144,39 @@ contract FlightSuretyApp {
             updatedTimestamp: _timestamp,
             airline: msg.sender
         });
+    }
+
+    /**
+     * @dev Function called by the passenger to buy insurance for a flight
+     */
+    function buy(bytes32 _flightKey) external {
+        require(
+            flightSuretyData.isPassenger(msg.sender),
+            "You are not a passenger"
+        );
+        flightSuretyData.buy(_flightKey, msg.sender);
+    }
+
+    /**
+     * @dev Function called by the passenger to have an insurance credit paid to him
+     */
+    function pay(bytes32 _flightKey) external {
+        require(
+            flightSuretyData.isPassenger(msg.sender),
+            "You are not a passenger"
+        );
+        flightSuretyData.pay(_flightKey, msg.sender);
+    }
+
+    /**
+     * @dev Function called by the airline to submit their initial funding for the contract
+     */
+    function fund() external payable {
+        require(
+            flightSuretyData.isRegisteredAirline(msg.sender),
+            "You are not a registered airline"
+        );
+        flightSuretyData.fund{value: msg.value}(msg.sender);
     }
 
     /**
@@ -359,11 +393,20 @@ contract FlightSuretyApp {
 interface IFlightSuretyData {
     function setAppContract(address _flightSuretyApp) external;
 
-    function registerAirline(address airline) external returns (bool, uint256);
+    function registerAirline(
+        address airline,
+        address caller
+    ) external returns (bool, uint256);
+
+    function buy(bytes32 _flightKey, address _caller) external payable;
+
+    function pay(bytes32 _flightKey, address _caller) external;
 
     function isRegisteredAirline(address airline) external view returns (bool);
 
-    function vote(bytes32 proposalId, address voter) external returns (bool);
+    function isPassenger(address passenger) external view returns (bool);
 
     function creditInsurees(bytes32 _flightKey) external;
+
+    function fund(address _caller) external payable;
 }

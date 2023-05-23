@@ -16,6 +16,7 @@ contract FlightSuretyData {
     uint airlineCounter = 0; // Counter to keep track of how many airlines were added.
     uint public voteDuration = 1 hours; // Set the vote duration (e.g., 1 hour)
     IFlightSuretyApp private flightSuretyApp; // Address of the FlightSuretyApp contract.
+    mapping(address => bool) private authorizedCallers; // Tracks who is authorized to call this contract
 
     struct Passenger {
         address passengerAddress;
@@ -54,6 +55,7 @@ contract FlightSuretyData {
      */
     constructor() {
         contractOwner = msg.sender;
+        authorizeCaller(msg.sender);
     }
 
     // events
@@ -99,10 +101,10 @@ contract FlightSuretyData {
     }
 
     // Modifier to ensure that only FlightSuretyApp contract can call the function
-    modifier onlyFlightSuretyApp() {
+    modifier isAuthorized() {
         require(
-            msg.sender == address(flightSuretyApp),
-            "Caller is not the FlightSuretyApp contract"
+            authorizedCallers[msg.sender] == true,
+            "Caller is not authorised to call this contract"
         );
         _;
     }
@@ -144,12 +146,7 @@ contract FlightSuretyData {
     function vote(
         bytes32 proposalId,
         address voter
-    )
-        public
-        requireIsOperational
-        requireExistingAirline(msg.sender)
-        returns (bool)
-    {
+    ) internal requireIsOperational returns (bool) {
         Proposal storage proposal = proposals[proposalId];
         require(
             !proposal.voters[voter],
@@ -174,6 +171,27 @@ contract FlightSuretyData {
         return airlines[_airline].isRegistered;
     }
 
+    function isPassenger(address passenger) public view returns (bool) {
+        if (passengers[passenger].passengerAddress != address(0)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @dev function to add authorized callers of this contract
+     */
+    function authorizeCaller(address _caller) public requireContractOwner {
+        authorizedCallers[_caller] = true;
+    }
+
+    /**
+     * @dev function to check if the address calling the contract is authorized
+     */
+    function deauthorizeCaller(address _caller) public requireContractOwner {
+        delete authorizedCallers[_caller];
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -185,8 +203,14 @@ contract FlightSuretyData {
      *      other airlines have voted and the threshold was reached.
      */
     function registerAirline(
-        address airline
-    ) external requireIsOperational returns (bool success, uint256 votes) {
+        address airline,
+        address caller
+    )
+        external
+        requireIsOperational
+        isAuthorized
+        returns (bool success, uint256 votes)
+    {
         require(
             airlines[airline].airlineAddress == address(0),
             "Airline already exists"
@@ -203,7 +227,7 @@ contract FlightSuretyData {
             return (success, votes);
         } else {
             require(
-                airlines[msg.sender].isRegistered == true,
+                airlines[caller].isRegistered == true,
                 "Caller is not an existing airline"
             );
             bytes32 proposalId = keccak256(
@@ -254,25 +278,28 @@ contract FlightSuretyData {
      * @dev Buy insurance for a flight
      *
      */
-    function buy(bytes32 _flightKey) external payable {
+    function buy(
+        bytes32 _flightKey,
+        address _caller
+    ) external payable isAuthorized {
         require(
             flightSuretyApp.isRegisteredFlight(_flightKey),
             "Flight not found!"
         );
         require(
-            flightInsuranceAmounts[_flightKey][msg.sender] == 0,
+            flightInsuranceAmounts[_flightKey][_caller] == 0,
             "You already bought insurance."
         );
         require(msg.value <= 1 ether, "You can only insure up to 1 ether");
-        flightInsurees[_flightKey].push(msg.sender);
-        flightInsuranceAmounts[_flightKey][msg.sender] = msg.value;
+        flightInsurees[_flightKey].push(_caller);
+        flightInsuranceAmounts[_flightKey][_caller] = msg.value;
         emit InsuranceBought(_flightKey);
     }
 
     /**
      *  @dev Credits payouts to insurees. Credit is equal to 1.5 x the insurance amount bought.
      */
-    function creditInsurees(bytes32 _flightKey) external onlyFlightSuretyApp {
+    function creditInsurees(bytes32 _flightKey) external isAuthorized {
         for (uint i = 0; i < flightInsurees[_flightKey].length; i++) {
             address passengerAddress = flightInsurees[_flightKey][i];
             passengers[passengerAddress].credit =
@@ -285,9 +312,9 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
      */
-    function pay(bytes32 _flightKey) external {
+    function pay(bytes32 _flightKey, address _caller) external isAuthorized {
         require(
-            passengers[msg.sender].passengerAddress != address(0),
+            passengers[_caller].passengerAddress != address(0),
             "You are not a passenger."
         );
         require(
@@ -298,9 +325,9 @@ contract FlightSuretyData {
             flightSuretyApp.isDelayedFlight(_flightKey),
             "This flight is not delayed"
         );
-        uint totalCredit = passengers[msg.sender].credit;
-        passengers[msg.sender].credit = 0;
-        payable(msg.sender).transfer(totalCredit);
+        uint totalCredit = passengers[_caller].credit;
+        passengers[_caller].credit = 0;
+        payable(_caller).transfer(totalCredit);
     }
 
     /**
@@ -308,11 +335,18 @@ contract FlightSuretyData {
      *      resulting in insurance payouts, the contract should be self-sustaining
      *
      */
-    function fund() public payable requireExistingAirline(msg.sender) {
+    function fund(address _caller) public payable isAuthorized {
+        require(
+            airlines[_caller].isRegistered == true,
+            "Caller is not an existing airline"
+        );
         require(msg.value >= 10 ether, "You should fund at least 10 ether");
-        airlines[msg.sender].hasFunded = true;
+        airlines[_caller].hasFunded = true;
     }
 
+    /**
+     * @dev Helper function to get the flight key
+     */
     function getFlightKey(
         address airline,
         string memory flight,
@@ -322,11 +356,11 @@ contract FlightSuretyData {
     }
 
     /**
-     * @dev Fallback function for funding smart contract.
+     * @dev Fallback function.
      *
      */
-    receive() external payable {
-        fund();
+    fallback() external {
+        revert("Function does not exist");
     }
 }
 

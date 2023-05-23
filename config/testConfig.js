@@ -1,6 +1,7 @@
 const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 const FlightSuretyData = artifacts.require("FlightSuretyData");
 const BigNumber = require("bignumber.js");
+const flightSuretyDataAddress = "0xeb9C50C9161f70446D8355486023Dd730Bb85441";
 
 const Config = async function (accounts) {
   // These test addresses are useful when you need to add
@@ -21,7 +22,7 @@ const Config = async function (accounts) {
   let firstAirline = accounts[1];
 
   let flightSuretyData = await FlightSuretyData.new();
-  let flightSuretyApp = await FlightSuretyApp.new(); // This should take the address of the deployed FlightSuretyData contract.
+  let flightSuretyApp = await FlightSuretyApp.new(flightSuretyDataAddress); // This should take the address of the deployed FlightSuretyData contract.
 
   return {
     owner: owner,
