@@ -89,17 +89,6 @@ contract FlightSuretyData {
         _;
     }
 
-    /**
-     * @dev Modifier that requires the function caller to be an existing airline
-     */
-    modifier requireExistingAirline(address _caller) {
-        require(
-            airlines[_caller].isRegistered == true,
-            "Caller is not an existing airline"
-        );
-        _;
-    }
-
     // Modifier to ensure that only FlightSuretyApp contract can call the function
     modifier isAuthorized() {
         require(
