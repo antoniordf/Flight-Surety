@@ -172,10 +172,6 @@ contract FlightSuretyApp {
      * @dev Function called by the airline to submit their initial funding for the contract
      */
     function fund() external payable {
-        require(
-            flightSuretyData.isRegisteredAirline(msg.sender),
-            "You are not a registered airline"
-        );
         flightSuretyData.fund{value: msg.value}(msg.sender);
     }
 

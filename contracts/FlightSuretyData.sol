@@ -154,7 +154,7 @@ contract FlightSuretyData {
     /**
      * @dev function so that we can check if an airline is registered from the app contract
      */
-    function isRegisterredAirline(
+    function isRegisteredAirline(
         address _airline
     ) external view returns (bool) {
         return airlines[_airline].isRegistered;
@@ -329,10 +329,6 @@ contract FlightSuretyData {
      *
      */
     function fund(address _caller) external payable isAuthorized {
-        require(
-            airlines[_caller].isRegistered == true,
-            "Caller is not an existing airline"
-        );
         require(msg.value >= 10 ether, "You should fund at least 10 ether");
         airlines[_caller].hasFunded = true;
     }
