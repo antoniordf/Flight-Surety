@@ -53,9 +53,10 @@ contract FlightSuretyData {
      * @dev Constructor
      *      The deploying account becomes contractOwner
      */
-    constructor() {
+    constructor(address _firstAirline) {
         contractOwner = msg.sender;
         authorizeCaller(msg.sender);
+        registerAirline(_firstAirline, msg.sender);
     }
 
     // events
@@ -195,15 +196,11 @@ contract FlightSuretyData {
         address _airline,
         address _caller
     )
-        external
+        public
         requireIsOperational
         isAuthorized
         returns (bool success, uint256 votes)
     {
-        require(
-            airlines[_caller].hasFunded == true,
-            "Caller has not funded account"
-        );
         require(
             airlines[_airline].airlineAddress == address(0),
             "Airline already exists"

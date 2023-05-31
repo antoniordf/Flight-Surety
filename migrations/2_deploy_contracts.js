@@ -6,7 +6,7 @@ module.exports = async function (deployer, network, accounts) {
   let firstAirline = accounts[1]; // replace with the actual address if you're not using the local network
 
   // deploy FlightSuretyData first with an empty address
-  await deployer.deploy(FlightSuretyData);
+  await deployer.deploy(FlightSuretyData, firstAirline);
   let flightSuretyData = await FlightSuretyData.deployed();
 
   // then deploy FlightSuretyApp
@@ -24,9 +24,6 @@ module.exports = async function (deployer, network, accounts) {
     from: firstAirline,
     value: web3.utils.toWei("10", "ether"),
   });
-
-  // Add first airline
-  await flightSuretyApp.registerAirline(firstAirline);
 
   let config = {
     localhost: {
