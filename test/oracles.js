@@ -22,6 +22,11 @@ contract("Oracles", async (accounts) => {
 
     // ACT
     for (let a = 1; a < TEST_ORACLES_COUNT; a++) {
+      // There are only 9 accounts available in truffle develop but the loop tries to loop over 20 accounts
+      if (!accounts[a]) {
+        console.error(`Account ${a} is not defined`);
+        continue;
+      }
       await config.flightSuretyApp.registerOracle({
         from: accounts[a],
         value: fee,
@@ -53,6 +58,11 @@ contract("Oracles", async (accounts) => {
     // and submit a response. The contract will reject a submission if it was
     // not requested so while sub-optimal, it's a good test of that feature
     for (let a = 1; a < TEST_ORACLES_COUNT; a++) {
+      // There are only 9 accounts available in truffle develop but the loop tries to loop over 20 accounts
+      if (!accounts[a]) {
+        console.error(`Account ${a} is not defined`);
+        continue;
+      }
       // Get oracle information
       let oracleIndexes = await config.flightSuretyApp.getMyIndexes.call({
         from: accounts[a],

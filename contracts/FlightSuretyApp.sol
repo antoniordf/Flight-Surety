@@ -375,7 +375,7 @@ contract FlightSuretyApp {
             ) % maxValue
         );
 
-        if (nonce > 250) {
+        if (nonce >= 255) {
             nonce = 0; // Can only fetch blockhashes for last 256 blocks so we adapt
         }
 
