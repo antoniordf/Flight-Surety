@@ -1,5 +1,5 @@
-const webpack = require("webpack");
 const path = require("path");
+const webpack = require("webpack");
 const nodeExternals = require("webpack-node-externals");
 const StartServerPlugin = require("start-server-webpack-plugin");
 
@@ -9,13 +9,13 @@ module.exports = {
   target: "node",
   externals: [
     nodeExternals({
-      whitelist: ["webpack/hot/poll?1000"],
+      allowlist: ["webpack/hot/poll?1000"],
     }),
   ],
   module: {
     rules: [
       {
-        test: /\.js?$/,
+        test: /\.(js|jsx)?$/,
         use: "babel-loader",
         exclude: /node_modules/,
       },
@@ -23,9 +23,7 @@ module.exports = {
   },
   plugins: [
     new StartServerPlugin("server.js"),
-    new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
     new webpack.DefinePlugin({
       "process.env": {
         BUILD_TARGET: JSON.stringify("server"),
@@ -35,5 +33,13 @@ module.exports = {
   output: {
     path: path.join(__dirname, "prod/server"),
     filename: "server.js",
+    hotUpdateChunkFilename: ".hot/[id].[fullhash].hot-update.js",
+    hotUpdateMainFilename: ".hot/[runtime].[fullhash].hot-update.json",
+  },
+  resolve: {
+    extensions: [".js", ".jsx"],
+  },
+  infrastructureLogging: {
+    level: "info",
   },
 };

@@ -4,14 +4,14 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 module.exports = {
   entry: ["babel-polyfill", path.join(__dirname, "src/dapp")],
   output: {
-    path: path.join(__dirname, "prod/dapp"),
+    path: path.resolve(__dirname, "prod/dapp"),
     filename: "bundle.js",
   },
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
-        use: "babel-loader",
+        use: { loader: "babel-loader" },
         exclude: /node_modules/,
       },
       {
@@ -19,27 +19,32 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.(png|svg|jpg|gif)$/,
-        use: ["file-loader"],
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: "asset/resource",
       },
       {
-        test: /\.html$/,
-        use: "html-loader",
-        exclude: /node_modules/,
+        test: /\.html$/i,
+        loader: "html-loader",
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src/dapp/index.html"),
+      template: path.resolve(__dirname, "src/dapp/index.html"),
     }),
   ],
   resolve: {
-    extensions: [".js"],
+    extensions: [".js", ".jsx"],
   },
   devServer: {
-    contentBase: path.join(__dirname, "dapp"),
+    static: {
+      directory: path.join(__dirname, "dapp"),
+    },
+    compress: true,
     port: 8000,
-    stats: "minimal",
+    hot: true,
+    client: {
+      logging: "info",
+    },
   },
 };
