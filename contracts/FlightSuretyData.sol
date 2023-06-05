@@ -56,7 +56,7 @@ contract FlightSuretyData {
     constructor(address _firstAirline) {
         contractOwner = msg.sender;
         authorizeCaller(msg.sender);
-        registerAirline(_firstAirline, msg.sender);
+        registerFirstAirline(_firstAirline);
     }
 
     // events
@@ -176,10 +176,27 @@ contract FlightSuretyData {
     }
 
     /**
-     * @dev function to check if the address calling the contract is authorized
+     * @dev function to remove an address from the authorized callers list
      */
     function deauthorizeCaller(address _caller) public requireContractOwner {
         delete authorizedCallers[_caller];
+    }
+
+    /**
+     * @dev function to check if the address calling the contract is authorized
+     */
+    function isAuthorizedCaller() public view returns (bool) {
+        return authorizedCallers[msg.sender];
+    }
+
+    function registerFirstAirline(address _airline) internal {
+        airlines[_airline] = Airline({
+            airlineAddress: _airline,
+            isRegistered: true,
+            hasFunded: false
+        });
+        airlineCounter++;
+        authorizeCaller(_airline);
     }
 
     /********************************************************************************************/
@@ -205,6 +222,10 @@ contract FlightSuretyData {
             airlines[_airline].airlineAddress == address(0),
             "Airline already exists"
         );
+        require(
+            airlines[_caller].hasFunded == true,
+            "Caller has not funded account"
+        );
         if (airlineCounter <= 4) {
             airlines[_airline] = Airline({
                 airlineAddress: _airline,
@@ -212,6 +233,7 @@ contract FlightSuretyData {
                 hasFunded: false
             });
             airlineCounter++;
+            authorizeCaller(_airline);
             success = true;
             votes = 0; // No votes required if there are less than or equal to 4 airlines
             return (success, votes);
@@ -255,6 +277,7 @@ contract FlightSuretyData {
                 });
                 airlineCounter++;
                 emit ProposalPassed(proposalId);
+                authorizeCaller(_airline);
                 success = true;
                 return (success, votes);
             } else {
