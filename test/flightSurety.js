@@ -75,7 +75,9 @@ contract("Flight Surety Tests", async (accounts) => {
     } catch (e) {
       console.log(e.message);
     }
-    let result = await config.flightSuretyData.isAirline.call(newAirline);
+    let result = await config.flightSuretyData.isRegisteredAirline.call(
+      newAirline
+    );
 
     // ASSERT
     assert.equal(

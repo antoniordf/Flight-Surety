@@ -30,7 +30,7 @@ app.get("/api", (req, res) => {
   });
 });
 
-const port = 9545;
-app.listen(port, () => console.log(`Listening on port ${port}`));
+// const port = 3000;
+// app.listen(port, () => console.log(`Listening on port ${port}`));
 
 export default app;
