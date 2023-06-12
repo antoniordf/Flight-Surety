@@ -22,7 +22,7 @@ module.exports = {
     ],
   },
   plugins: [
-    new StartServerPlugin("server.js"),
+    // new StartServerPlugin("server.js"),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       "process.env": {
