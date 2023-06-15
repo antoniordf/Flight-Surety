@@ -1,23 +1,29 @@
 import FlightSuretyApp from "../../build/contracts/FlightSuretyApp.json";
+import FlightSuretyData from "../../build/contracts/FlightSuretyData.json";
 import Config from "./config.json";
 import Web3 from "web3";
 
 export default class Contract {
-  constructor(network, callback) {
+  constructor(network) {
     let config = Config[network];
     this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
     this.flightSuretyApp = new this.web3.eth.Contract(
       FlightSuretyApp.abi,
       config.appAddress
     );
-    this.initialize(callback);
+    this.flightSuretyData = new this.web3.eth.Contract(
+      FlightSuretyData.abi,
+      config.dataAddress
+    );
+
     this.owner = null;
     this.airlines = [];
     this.passengers = [];
   }
 
-  initialize(callback) {
-    this.web3.eth.getAccounts((error, accts) => {
+  async initialize() {
+    try {
+      const accts = await this.web3.eth.getAccounts();
       this.owner = accts[0];
 
       let counter = 1;
@@ -29,29 +35,59 @@ export default class Contract {
       while (this.passengers.length < 5) {
         this.passengers.push(accts[counter++]);
       }
-
-      callback();
-    });
+    } catch (error) {
+      console.error("Failed to initialize:", error);
+    }
   }
 
-  isOperational(callback) {
+  async isOperational(callback) {
     let self = this;
-    self.flightSuretyApp.methods
+    const result = await self.flightSuretyApp.methods
       .isOperational()
-      .call({ from: self.owner }, callback);
+      .call({ from: self.owner });
+    callback(null, result);
   }
 
-  fetchFlightStatus(flight, callback) {
+  async fetchFlightStatus(flight, callback) {
     let self = this;
     let payload = {
       airline: self.airlines[0],
       flight: flight,
       timestamp: Math.floor(Date.now() / 1000),
     };
-    self.flightSuretyApp.methods
-      .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-      .send({ from: self.owner }, (error, result) => {
-        callback(error, payload);
-      });
+    try {
+      const result = await self.flightSuretyApp.methods
+        .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
+        .send({ from: self.owner });
+      callback(null, result);
+    } catch (error) {
+      callback(error, null);
+    }
+  }
+
+  async registerFlight(addressIndex, flightNumber, timestamp, callback) {
+    let self = this;
+    const registered = await self.flightSuretyData.methods
+      .isRegisteredAirline(self.airlines[addressIndex])
+      .call({ from: self.owner });
+
+    let payload = {
+      airline: self.airlines[addressIndex],
+      flight: flightNumber,
+      timestamp: timestamp,
+    };
+
+    if (registered) {
+      try {
+        const result = await self.flightSuretyApp.methods
+          .registerFlight(payload.flight, payload.timestamp)
+          .send({ from: self.airlines[addressIndex] });
+        callback(null, result);
+      } catch (err) {
+        callback(err, null);
+      }
+    } else {
+      console.log("The account is not a registered airline");
+    }
   }
 }

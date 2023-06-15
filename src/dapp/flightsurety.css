@@ -40,3 +40,23 @@ label.form {
 input {
   margin-right: 30px;
 }
+
+.card {
+  display: flex;
+  flex-direction: row;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.flight {
+  color: #000;
+  margin: 0px;
+}
+
+.flight p {
+  margin: 0px;
+}
