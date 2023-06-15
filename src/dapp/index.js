@@ -60,8 +60,13 @@ import "./flightsurety.css";
     },
   ];
 
+  // Show spinner
+  document.getElementById("spinner").style.display = "block";
+
   // For each flight, I fund the contract, register the airline and register the flight
-  for (const flight of flights) {
+  for (let i = 0; i < flights.length; i++) {
+    let flight = flights[i];
+
     // Get Airlines to fund the contract
     try {
       const fundResult = await new Promise((resolve, reject) => {
@@ -107,8 +112,13 @@ import "./flightsurety.css";
     }
   }
 
+  // Hide spinner
+  document.getElementById("spinner").style.display = "none";
+
   // Generate cards for each flight
+  console.log(flights);
   flights.forEach((flight) => {
+    console.log(flight);
     const flightCard = DOM.div({ className: "card" });
     const flightInfo = DOM.div({ className: "flight" });
 
