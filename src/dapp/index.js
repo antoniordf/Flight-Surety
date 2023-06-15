@@ -64,52 +64,43 @@ import "./flightsurety.css";
   document.getElementById("spinner").style.display = "block";
 
   // For each flight, I fund the contract, register the airline and register the flight
-  for (let i = 0; i < flights.length; i++) {
-    let flight = flights[i];
-
-    // Get Airlines to fund the contract
-    try {
-      const fundResult = await new Promise((resolve, reject) => {
-        contract.fund(flight.addressIndex, (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        });
-      });
-      console.log(null, fundResult);
-    } catch (error) {
-      console.log(error, null);
-    }
-
-    // Register the Airlines in the contract
-    try {
-      const registerAirlineResult = await new Promise((resolve, reject) => {
-        contract.registerAirline(flight.addressIndex, (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        });
-      });
-      console.log(null, registerAirlineResult);
-    } catch (error) {
-      console.log(error, null);
-    }
-
-    // Register flights in the contract
-    try {
-      const registerFlightResult = await new Promise((resolve, reject) => {
-        contract.registerFlight(
-          flight.addressIndex,
-          flight.flightNumber,
-          flight.timestamp,
-          (error, result) => {
+  try {
+    await Promise.all(
+      flights.map(async (flight) => {
+        // Get airlines to fund contract.
+        const fundResult = await new Promise((resolve, reject) => {
+          contract.fund(flight.addressIndex, (error, result) => {
             if (error) reject(error);
             else resolve(result);
-          }
-        );
-      });
-      console.log(null, registerFlightResult);
-    } catch (error) {
-      console.log(error, null);
-    }
+          });
+        });
+
+        // Register the airlines
+        const registerAirlineResult = await new Promise((resolve, reject) => {
+          contract.registerAirline(flight.addressIndex, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          });
+        });
+
+        // Register the flights
+        const registerFlightResult = await new Promise((resolve, reject) => {
+          contract.registerFlight(
+            flight.addressIndex,
+            flight.flightNumber,
+            flight.timestamp,
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+        });
+
+        return { fundResult, registerAirlineResult, registerFlightResult };
+      })
+    );
+  } catch (error) {
+    console.log(error);
   }
 
   // Hide spinner
