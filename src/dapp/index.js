@@ -60,17 +60,52 @@ import "./flightsurety.css";
     },
   ];
 
-  // Register flights in the contract
-  flights.forEach((flight) => {
-    contract.registerFlight(
-      flight.addressIndex,
-      flight.flightNumber,
-      convertTimestamp(flight.timestamp),
-      (error, result) => {
-        console.log(error, result);
-      }
-    );
-  });
+  // For each flight, I fund the contract, register the airline and register the flight
+  for (const flight of flights) {
+    // Get Airlines to fund the contract
+    try {
+      const fundResult = await new Promise((resolve, reject) => {
+        contract.fund(flight.addressIndex, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        });
+      });
+      console.log(null, fundResult);
+    } catch (error) {
+      console.log(error, null);
+    }
+
+    // Register the Airlines in the contract
+    try {
+      const registerAirlineResult = await new Promise((resolve, reject) => {
+        contract.registerAirline(flight.addressIndex, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        });
+      });
+      console.log(null, registerAirlineResult);
+    } catch (error) {
+      console.log(error, null);
+    }
+
+    // Register flights in the contract
+    try {
+      const registerFlightResult = await new Promise((resolve, reject) => {
+        contract.registerFlight(
+          flight.addressIndex,
+          flight.flightNumber,
+          flight.timestamp,
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+      });
+      console.log(null, registerFlightResult);
+    } catch (error) {
+      console.log(error, null);
+    }
+  }
 
   // Generate cards for each flight
   flights.forEach((flight) => {
@@ -114,10 +149,4 @@ function display(title, description, results) {
     section.appendChild(row);
   });
   displayDiv.append(section);
-}
-
-function convertTimestamp(timestamp) {
-  const convertedTimestamp = new Date(timestamp);
-  const unixTimestamp = Math.floor(convertedTimestamp.getTime() / 1000);
-  return unixTimestamp;
 }

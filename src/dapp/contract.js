@@ -65,29 +65,66 @@ export default class Contract {
     }
   }
 
-  async registerFlight(addressIndex, flightNumber, timestamp, callback) {
+  async fund(addressIndex) {
     let self = this;
-    const registered = await self.flightSuretyData.methods
-      .isRegisteredAirline(self.airlines[addressIndex])
-      .call({ from: self.owner });
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await self.flightSuretyApp.methods.fund().send({
+          value: self.web3.utils.toWei("10", "ether"), // Convert to Wei
+          from: self.airlines[addressIndex],
+        });
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 
-    let payload = {
-      airline: self.airlines[addressIndex],
-      flight: flightNumber,
-      timestamp: timestamp,
-    };
-
-    if (registered) {
+  async registerAirline(addressIndex) {
+    let self = this;
+    return new Promise(async (resolve, reject) => {
       try {
         const result = await self.flightSuretyApp.methods
-          .registerFlight(payload.flight, payload.timestamp)
-          .send({ from: self.airlines[addressIndex] });
-        callback(null, result);
-      } catch (err) {
-        callback(err, null);
+          .registerAirline(self.airlines[addressIndex])
+          .send({ from: self.airlines[0] });
+        resolve(result);
+      } catch (error) {
+        reject(error);
       }
-    } else {
-      console.log("The account is not a registered airline");
-    }
+    });
   }
+
+  async registerFlight(addressIndex, flightNumber, timestamp) {
+    let self = this;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const registered = await self.flightSuretyData.methods
+          .isRegisteredAirline(self.airlines[addressIndex])
+          .call({ from: self.owner });
+
+        let payload = {
+          airline: self.airlines[addressIndex],
+          flight: flightNumber,
+          timestamp: convertTimestamp(timestamp),
+        };
+
+        if (registered) {
+          const result = await self.flightSuretyApp.methods
+            .registerFlight(payload.flight, payload.timestamp)
+            .send({ from: self.airlines[addressIndex] });
+          resolve(result);
+        } else {
+          console.log("The account is not a registered airline");
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+}
+
+function convertTimestamp(timestamp) {
+  const convertedTimestamp = new Date(timestamp);
+  const unixTimestamp = Math.floor(convertedTimestamp.getTime() / 1000);
+  return unixTimestamp;
 }
