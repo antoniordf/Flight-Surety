@@ -107,9 +107,7 @@ import "./flightsurety.css";
   document.getElementById("spinner").style.display = "none";
 
   // Generate cards for each flight
-  console.log(flights);
   flights.forEach((flight) => {
-    console.log(flight);
     const flightCard = DOM.div({ className: "card" });
     const flightInfo = DOM.div({ className: "flight" });
 
