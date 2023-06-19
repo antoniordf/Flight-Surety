@@ -36,25 +36,25 @@ import "./flightsurety.css";
   const flights = [
     {
       airline: "Emirates",
-      addressIndex: 1,
+      addressIndex: 0,
       flightNumber: "UAE145",
       timestamp: "06/16/2023 20:00:00 GMT",
     },
     {
       airline: "British Airways",
-      addressIndex: 2,
+      addressIndex: 1,
       flightNumber: "BA1885",
       timestamp: "06/20/2023 10:00:00 GMT",
     },
     {
       airline: "KLM",
-      addressIndex: 3,
+      addressIndex: 2,
       flightNumber: "KLM1775",
       timestamp: "06/23/2023 11:00:00 GMT",
     },
     {
       airline: "TAP",
-      addressIndex: 4,
+      addressIndex: 3,
       flightNumber: "TAP1995",
       timestamp: "06/18/2023 09:00:00 GMT",
     },
@@ -68,19 +68,27 @@ import "./flightsurety.css";
     await Promise.all(
       flights.map(async (flight) => {
         // Get airlines to fund contract.
-        const fundResult = await new Promise((resolve, reject) => {
-          contract.fund(flight.addressIndex, (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          });
-        });
+        try {
+          const fundResult = await contract.fund(flight.addressIndex);
+          console.log(fundResult);
+        } catch (error) {
+          console.error(error);
+        }
 
         // Register the airlines
+        console.log("I'll now try to register airlines");
         const registerAirlineResult = await new Promise((resolve, reject) => {
+          console.log("I am calling register airline from index.js");
           contract.registerAirline(flight.addressIndex, (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              reject(error);
+              console.log("Error generated while registering airline", error);
+            } else {
+              resolve(result);
+              console.log("Result of registering airline", result);
+            }
           });
+          console.log("I am back in index.js");
         });
 
         // Register the flights

@@ -2,8 +2,6 @@ require("dotenv").config();
 const { MNEMONIC, PROJECT_ID } = process.env;
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-const mnemonic =
-  "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
 module.exports = {
   networks: {
@@ -11,6 +9,12 @@ module.exports = {
       host: "127.0.0.1", // Localhost (default: none)
       port: 9545, // Standard Ethereum port (default: none)
       network_id: "*", // Any network (default: none)
+    },
+
+    ganache: {
+      host: "127.0.0.1", // Localhost
+      port: 8545, // Port for Ganache GUI
+      network_id: "*", // Match any network id
     },
 
     sepolia: {

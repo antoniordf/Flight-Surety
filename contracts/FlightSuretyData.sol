@@ -176,6 +176,14 @@ contract FlightSuretyData {
     }
 
     /**
+     * @dev internal function to add authorized callers of this contract.
+     *      This can only be called from within the contract itself.
+     */
+    function internalAuthorizeCaller(address _caller) internal {
+        authorizedCallers[_caller] = true;
+    }
+
+    /**
      * @dev function to remove an address from the authorized callers list
      */
     function deauthorizeCaller(address _caller) public requireContractOwner {
@@ -196,7 +204,7 @@ contract FlightSuretyData {
             hasFunded: false
         });
         airlineCounter++;
-        authorizeCaller(_airline);
+        internalAuthorizeCaller(_airline);
     }
 
     /********************************************************************************************/
@@ -230,10 +238,10 @@ contract FlightSuretyData {
             airlines[_airline] = Airline({
                 airlineAddress: _airline,
                 isRegistered: true,
-                hasFunded: false
+                hasFunded: true
             });
             airlineCounter++;
-            authorizeCaller(_airline);
+            internalAuthorizeCaller(_airline);
             success = true;
             votes = 0; // No votes required if there are less than or equal to 4 airlines
             return (success, votes);
@@ -273,7 +281,7 @@ contract FlightSuretyData {
                 airlines[_airline] = Airline({
                     airlineAddress: _airline,
                     isRegistered: true,
-                    hasFunded: false
+                    hasFunded: true
                 });
                 airlineCounter++;
                 emit ProposalPassed(proposalId);

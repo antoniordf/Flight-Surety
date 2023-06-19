@@ -67,28 +67,30 @@ export default class Contract {
 
   async fund(addressIndex) {
     let self = this;
-    return new Promise(async (resolve, reject) => {
-      try {
-        const result = await self.flightSuretyApp.methods.fund().send({
-          value: self.web3.utils.toWei("10", "ether"), // Convert to Wei
-          from: self.airlines[addressIndex],
-        });
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      }
-    });
+    try {
+      const result = await self.flightSuretyApp.methods.fund().send({
+        value: self.web3.utils.toWei("10", "ether"), // Convert to Wei
+        from: self.airlines[addressIndex],
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async registerAirline(addressIndex) {
     let self = this;
+    console.log("I am now in registerAirline in Contract.js");
     return new Promise(async (resolve, reject) => {
       try {
+        console.log("I will now call registerAirline in flightSuretyApp");
         const result = await self.flightSuretyApp.methods
           .registerAirline(self.airlines[addressIndex])
           .send({ from: self.airlines[0] });
+        console.log("Here is the result", result);
         resolve(result);
       } catch (error) {
+        console.log("Here is the error", error);
         reject(error);
       }
     });
