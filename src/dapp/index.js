@@ -68,8 +68,9 @@ import "./flightsurety.css";
     await Promise.all(
       flights.map(async (flight) => {
         // Get airlines to fund contract.
+        let fundResult;
         try {
-          const fundResult = await contract.fund(flight.addressIndex);
+          fundResult = await contract.fund(flight.addressIndex);
           console.log(fundResult);
         } catch (error) {
           console.error(error);

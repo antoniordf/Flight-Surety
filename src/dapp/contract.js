@@ -106,7 +106,7 @@ export default class Contract {
         console.log("I am now checking if airline is registered in contract");
         const registered = await self.flightSuretyData.methods
           .isRegisteredAirline(self.airlines[addressIndex])
-          .call({ from: self.owner });
+          .call({ from: self.airlines[addressIndex] });
         console.log("Here is the result", registered);
 
         let payload = {

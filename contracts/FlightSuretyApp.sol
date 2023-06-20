@@ -82,8 +82,11 @@ contract FlightSuretyApp {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    function isOperational() public pure returns (bool) {
-        return true; // Modify to call data contract's status
+    /**
+     * @dev function so that we can check if the contract is operational
+     */
+    function isOperational() public view returns (bool) {
+        return flightSuretyData.isOperational();
     }
 
     /**
@@ -397,6 +400,8 @@ interface IFlightSuretyData {
     function buy(bytes32 _flightKey, address _caller) external payable;
 
     function pay(bytes32 _flightKey, address _caller) external;
+
+    function isOperational() external view returns (bool);
 
     function isRegisteredAirline(address airline) external view returns (bool);
 
