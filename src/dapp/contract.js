@@ -28,7 +28,7 @@ export default class Contract {
 
       let counter = 1;
 
-      while (this.airlines.length < 5) {
+      while (this.airlines.length < 6) {
         this.airlines.push(accts[counter++]);
       }
 
@@ -81,28 +81,33 @@ export default class Contract {
   async registerAirline(addressIndex) {
     let self = this;
     console.log("I am now in registerAirline in Contract.js");
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log("I will now call registerAirline in flightSuretyApp");
-        const result = await self.flightSuretyApp.methods
-          .registerAirline(self.airlines[addressIndex])
-          .send({ from: self.airlines[0] });
-        console.log("Here is the result", result);
-        resolve(result);
-      } catch (error) {
-        console.log("Here is the error", error);
-        reject(error);
-      }
-    });
+    try {
+      console.log("I will now call registerAirline in flightSuretyApp");
+      const result = await self.flightSuretyApp.methods
+        .registerAirline(self.airlines[addressIndex])
+        .send({ from: self.airlines[0] });
+      console.log(
+        "I have just registered airline",
+        self.airlines[addressIndex]
+      );
+      console.log("Here is the result", result);
+      return result;
+    } catch (error) {
+      console.log("Here is the error", error);
+      throw error;
+    }
   }
 
   async registerFlight(addressIndex, flightNumber, timestamp) {
     let self = this;
+    console.log("I am now in registerFlight in contract.js");
     return new Promise(async (resolve, reject) => {
       try {
+        console.log("I am now checking if airline is registered in contract");
         const registered = await self.flightSuretyData.methods
           .isRegisteredAirline(self.airlines[addressIndex])
           .call({ from: self.owner });
+        console.log("Here is the result", registered);
 
         let payload = {
           airline: self.airlines[addressIndex],
@@ -111,14 +116,17 @@ export default class Contract {
         };
 
         if (registered) {
+          console.log("I will now call registerFlight in contract");
           const result = await self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.timestamp)
             .send({ from: self.airlines[addressIndex] });
+          console.log("Here is the result of registering flight", result);
           resolve(result);
         } else {
           console.log("The account is not a registered airline");
         }
       } catch (error) {
+        console.log("There was an error", error);
         reject(error);
       }
     });

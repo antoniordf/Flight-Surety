@@ -77,32 +77,29 @@ import "./flightsurety.css";
 
         // Register the airlines
         console.log("I'll now try to register airlines");
-        const registerAirlineResult = await new Promise((resolve, reject) => {
-          console.log("I am calling register airline from index.js");
-          contract.registerAirline(flight.addressIndex, (error, result) => {
-            if (error) {
-              reject(error);
-              console.log("Error generated while registering airline", error);
-            } else {
-              resolve(result);
-              console.log("Result of registering airline", result);
-            }
-          });
-          console.log("I am back in index.js");
-        });
+        let registerAirlineResult;
+        try {
+          registerAirlineResult = await contract.registerAirline(
+            flight.addressIndex
+          );
+          console.log("Result of registering airline", registerAirlineResult);
+        } catch (error) {
+          console.error("Error generated while registering airline", error);
+        }
 
         // Register the flights
-        const registerFlightResult = await new Promise((resolve, reject) => {
-          contract.registerFlight(
+        console.log("I will now start to register flights");
+        let registerFlightResult;
+        try {
+          registerFlightResult = await contract.registerFlight(
             flight.addressIndex,
             flight.flightNumber,
-            flight.timestamp,
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
+            flight.timestamp
           );
-        });
+          console.log("Result of registering flight", registerFlightResult);
+        } catch (error) {
+          console.error("Error generated while registering flight", error);
+        }
 
         return { fundResult, registerAirlineResult, registerFlightResult };
       })

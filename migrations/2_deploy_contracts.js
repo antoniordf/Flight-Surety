@@ -3,7 +3,7 @@ const FlightSuretyData = artifacts.require("FlightSuretyData");
 const fs = require("fs");
 
 module.exports = async function (deployer, network, accounts) {
-  let firstAirline = accounts[1]; // replace with the actual address if you're not using the local network
+  let firstAirline = accounts[9]; // replace with the actual address if you're not using the local network
 
   // deploy FlightSuretyData first with an empty address
   await deployer.deploy(FlightSuretyData, firstAirline);
