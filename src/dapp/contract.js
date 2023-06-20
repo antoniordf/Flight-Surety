@@ -40,15 +40,20 @@ export default class Contract {
     }
   }
 
-  async isOperational(callback) {
+  async isOperational() {
     let self = this;
-    const result = await self.flightSuretyApp.methods
-      .isOperational()
-      .call({ from: self.owner });
-    callback(null, result);
+    try {
+      const result = await self.flightSuretyApp.methods
+        .isOperational()
+        .call({ from: self.owner });
+      return result;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
-  async fetchFlightStatus(flight, callback) {
+  async fetchFlightStatus(flight) {
     let self = this;
     let payload = {
       airline: self.airlines[0],
@@ -59,9 +64,10 @@ export default class Contract {
       const result = await self.flightSuretyApp.methods
         .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
         .send({ from: self.owner });
-      callback(null, result);
+      return result;
     } catch (error) {
-      callback(error, null);
+      console.error(error);
+      return null;
     }
   }
 
@@ -80,56 +86,48 @@ export default class Contract {
 
   async registerAirline(addressIndex) {
     let self = this;
-    console.log("I am now in registerAirline in Contract.js");
     try {
-      console.log("I will now call registerAirline in flightSuretyApp");
-      const result = await self.flightSuretyApp.methods
-        .registerAirline(self.airlines[addressIndex])
-        .send({ from: self.airlines[0], gas: 5000000 });
-      console.log(
-        "I have just registered airline",
-        self.airlines[addressIndex]
-      );
-      console.log("Here is the result", result);
-      return result;
+      const registered = await self.flightSuretyData.methods
+        .isRegisteredAirline(self.airlines[addressIndex])
+        .call({ from: self.airlines[addressIndex] });
+
+      if (registered) {
+        return;
+      } else {
+        const result = await self.flightSuretyApp.methods
+          .registerAirline(self.airlines[addressIndex])
+          .send({ from: self.airlines[0], gas: 200000 });
+        return result;
+      }
     } catch (error) {
-      console.log("Here is the error", error);
       throw error;
     }
   }
 
   async registerFlight(addressIndex, flightNumber, timestamp) {
     let self = this;
-    console.log("I am now in registerFlight in contract.js");
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log("I am now checking if airline is registered in contract");
-        const registered = await self.flightSuretyData.methods
-          .isRegisteredAirline(self.airlines[addressIndex])
-          .call({ from: self.airlines[addressIndex] });
-        console.log("Here is the result", registered);
+    try {
+      const registered = await self.flightSuretyData.methods
+        .isRegisteredAirline(self.airlines[addressIndex])
+        .call({ from: self.airlines[addressIndex] });
 
-        let payload = {
-          airline: self.airlines[addressIndex],
-          flight: flightNumber,
-          timestamp: convertTimestamp(timestamp),
-        };
+      let payload = {
+        airline: self.airlines[addressIndex],
+        flight: flightNumber,
+        timestamp: convertTimestamp(timestamp),
+      };
 
-        if (registered) {
-          console.log("I will now call registerFlight in contract");
-          const result = await self.flightSuretyApp.methods
-            .registerFlight(payload.flight, payload.timestamp)
-            .send({ from: self.airlines[addressIndex], gas: 5000000 });
-          console.log("Here is the result of registering flight", result);
-          resolve(result);
-        } else {
-          console.log("The account is not a registered airline");
-        }
-      } catch (error) {
-        console.log("There was an error", error);
-        reject(error);
+      if (registered) {
+        const result = await self.flightSuretyApp.methods
+          .registerFlight(payload.flight, payload.timestamp)
+          .send({ from: self.airlines[addressIndex], gas: 200000 });
+        return result;
+      } else {
+        console.log("The account is not a registered airline");
       }
-    });
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

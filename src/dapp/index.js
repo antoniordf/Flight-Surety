@@ -9,27 +9,28 @@ import "./flightsurety.css";
 
   await contract.initialize();
 
-  // Read transaction
-  contract.isOperational((error, result) => {
-    console.log(error, result);
-    display("Operational Status", "Check if contract is operational", [
-      { label: "Operational Status", error: error, value: result },
-    ]);
-  });
+  let operationalStatus = await contract.isOperational();
+  console.log(operationalStatus);
+  display("Operational Status", "Check if contract is operational", [
+    { label: "Operational Status", error: null, value: operationalStatus },
+  ]);
 
   // User-submitted transaction
-  DOM.elid("submit-oracle").addEventListener("click", () => {
+  DOM.elid("submit-oracle").addEventListener("click", async () => {
     let flight = DOM.elid("flight-number").value;
     // Write transaction
-    contract.fetchFlightStatus(flight, (error, result) => {
+    try {
+      let result = await contract.fetchFlightStatus(flight);
       display("Oracles", "Trigger oracles", [
         {
           label: "Fetch Flight Status",
-          error: error,
+          error: null,
           value: result.flight + " " + result.timestamp,
         },
       ]);
-    });
+    } catch (error) {
+      console.error(error);
+    }
   });
 
   // Flights
@@ -71,25 +72,21 @@ import "./flightsurety.css";
         let fundResult;
         try {
           fundResult = await contract.fund(flight.addressIndex);
-          console.log(fundResult);
         } catch (error) {
           console.error(error);
         }
 
         // Register the airlines
-        console.log("I'll now try to register airlines");
         let registerAirlineResult;
         try {
           registerAirlineResult = await contract.registerAirline(
             flight.addressIndex
           );
-          console.log("Result of registering airline", registerAirlineResult);
         } catch (error) {
           console.error("Error generated while registering airline", error);
         }
 
         // Register the flights
-        console.log("I will now start to register flights");
         let registerFlightResult;
         try {
           registerFlightResult = await contract.registerFlight(
@@ -97,7 +94,6 @@ import "./flightsurety.css";
             flight.flightNumber,
             flight.timestamp
           );
-          console.log("Result of registering flight", registerFlightResult);
         } catch (error) {
           console.error("Error generated while registering flight", error);
         }
