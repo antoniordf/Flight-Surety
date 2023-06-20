@@ -85,7 +85,7 @@ export default class Contract {
       console.log("I will now call registerAirline in flightSuretyApp");
       const result = await self.flightSuretyApp.methods
         .registerAirline(self.airlines[addressIndex])
-        .send({ from: self.airlines[0] });
+        .send({ from: self.airlines[0], gas: 5000000 });
       console.log(
         "I have just registered airline",
         self.airlines[addressIndex]
@@ -119,7 +119,7 @@ export default class Contract {
           console.log("I will now call registerFlight in contract");
           const result = await self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.timestamp)
-            .send({ from: self.airlines[addressIndex] });
+            .send({ from: self.airlines[addressIndex], gas: 5000000 });
           console.log("Here is the result of registering flight", result);
           resolve(result);
         } else {
