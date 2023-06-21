@@ -84,6 +84,21 @@ export default class Contract {
     }
   }
 
+  async registerPassenger(passengerAddress) {
+    let self = this;
+    try {
+      console.log("Calling registerPassenger in flightSuretyApp");
+      const result = await self.flightSuretyApp.methods
+        .registerPassenger(passengerAddress)
+        .send({ from: passengerAddress, gas: 200000 });
+      console.log("here is the result", result);
+      return result;
+    } catch (error) {
+      console.log("here is the error", error);
+      throw error;
+    }
+  }
+
   async registerAirline(addressIndex) {
     let self = this;
     try {

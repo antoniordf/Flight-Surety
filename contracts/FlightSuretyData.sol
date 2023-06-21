@@ -21,6 +21,7 @@ contract FlightSuretyData {
     struct Passenger {
         address passengerAddress;
         uint256 credit;
+        bool isRegistered;
     }
     mapping(address => Passenger) private passengers;
 
@@ -158,6 +159,15 @@ contract FlightSuretyData {
     }
 
     /**
+     * @dev function so that we can check if a passenger is registered from the app contract
+     */
+    function isRegisteredPassenger(
+        address _passenger
+    ) external view returns (bool) {
+        return passengers[_passenger].isRegistered;
+    }
+
+    /**
      * @dev function so that we can check if an airline is registered from the app contract
      */
     function isRegisteredAirline(
@@ -225,7 +235,8 @@ contract FlightSuretyData {
     ) external isAuthorized {
         passengers[_passengerAddress] = Passenger({
             passengerAddress: _passengerAddress,
-            credit: 0
+            credit: 0,
+            isRegistered: true
         });
         emit PassengerRegistered(_passengerAddress);
     }

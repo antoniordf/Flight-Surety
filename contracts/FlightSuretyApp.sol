@@ -112,7 +112,15 @@ contract FlightSuretyApp {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+    /**
+     * @dev Registers a passenger to the passengers mapping in Data contract.
+     *
+     */
     function registerPassenger(address _passengerAddress) public {
+        require(
+            flightSuretyData.isRegisteredPassenger(_passengerAddress) == false,
+            "Passanger is already registered"
+        );
         flightSuretyData.registerPassenger(_passengerAddress);
     }
 
@@ -408,6 +416,10 @@ interface IFlightSuretyData {
     function pay(bytes32 _flightKey, address _caller) external;
 
     function isOperational() external view returns (bool);
+
+    function isRegisteredPassenger(
+        address _passenger
+    ) external view returns (bool);
 
     function isRegisteredAirline(address airline) external view returns (bool);
 

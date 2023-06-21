@@ -15,7 +15,22 @@ import "./flightsurety.css";
     { label: "Operational Status", error: null, value: operationalStatus },
   ]);
 
-  // User-submitted transaction
+  // Register as Passenger
+  DOM.elid("register-passenger").addEventListener("click", async () => {
+    console.log("Passenger button clicked");
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const account = accounts[0];
+      console.log("Calling registerPassenger in contract.js");
+      await contract.registerPassenger(account);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  // Submit to Oracle
   DOM.elid("submit-oracle").addEventListener("click", async () => {
     let flight = DOM.elid("flight-number").value;
     // Write transaction
