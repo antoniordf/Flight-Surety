@@ -112,6 +112,10 @@ contract FlightSuretyApp {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+    function registerPassenger(address _passengerAddress) public {
+        flightSuretyData.registerPassenger(_passengerAddress);
+    }
+
     /**
      * @dev Add an airline to the registration queue
      *
@@ -391,6 +395,8 @@ contract FlightSuretyApp {
 // Interface with data contract
 interface IFlightSuretyData {
     function setAppContract(address _flightSuretyApp) external;
+
+    function registerPassenger(address _passengerAddress) external;
 
     function registerAirline(
         address airline,

@@ -64,6 +64,11 @@ contract FlightSuretyData {
     event ProposalPassed(bytes32 indexed proposalId);
     event ProposalExpired(bytes32 indexed proposalId);
     event InsuranceBought(bytes32 indexed flightKey);
+    event PassengerRegistered(address indexed passengerAddress);
+    event AirlineRegistered(address indexed airline);
+    event InsureesCredited(bytes32 indexed flightKey);
+    event PaymentMade(bytes32 indexed flightKey, address indexed caller);
+    event AccountFunded(address indexed caller);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -212,6 +217,20 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     /**
+     * @dev Add a passenger to the passengers mapping. This function is called by registerPassenger function in the App
+     * contract, which in turn is called by the user in the client dapp.
+     */
+    function registerPassenger(
+        address _passengerAddress
+    ) external isAuthorized {
+        passengers[_passengerAddress] = Passenger({
+            passengerAddress: _passengerAddress,
+            credit: 0
+        });
+        emit PassengerRegistered(_passengerAddress);
+    }
+
+    /**
      * @dev Add an airline to the registration queue
      *      Can only be called from FlightSuretyApp contract
      *      The function needs to be called once to create the proposal to add the airline, and then again after
@@ -244,6 +263,7 @@ contract FlightSuretyData {
             internalAuthorizeCaller(_airline);
             success = true;
             votes = 0; // No votes required if there are less than or equal to 4 airlines
+            emit AirlineRegistered(_airline);
             return (success, votes);
         } else {
             require(
@@ -285,8 +305,9 @@ contract FlightSuretyData {
                 });
                 airlineCounter++;
                 emit ProposalPassed(proposalId);
-                authorizeCaller(_airline);
+                internalAuthorizeCaller(_airline);
                 success = true;
+                emit AirlineRegistered(_airline);
                 return (success, votes);
             } else {
                 success = false; // Not enough votes yet
@@ -327,6 +348,7 @@ contract FlightSuretyData {
                 (flightInsuranceAmounts[_flightKey][passengerAddress] * 3) /
                 2;
         }
+        emit InsureesCredited(_flightKey);
     }
 
     /**
@@ -349,6 +371,7 @@ contract FlightSuretyData {
         uint totalCredit = passengers[_caller].credit;
         passengers[_caller].credit = 0;
         payable(_caller).transfer(totalCredit);
+        emit PaymentMade(_flightKey, _caller);
     }
 
     /**
@@ -359,6 +382,7 @@ contract FlightSuretyData {
     function fund(address _caller) external payable isAuthorized {
         require(msg.value >= 10 ether, "You should fund at least 10 ether");
         airlines[_caller].hasFunded = true;
+        emit AccountFunded(_caller);
     }
 
     /**
