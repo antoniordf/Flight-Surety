@@ -29,6 +29,15 @@ const account = accounts[0];
   DOM.elid("register-passenger").addEventListener("click", async (event) => {
     event.preventDefault();
 
+    // Save current button state
+    const button = event.target;
+    const originalButtonHTML = button.innerHTML;
+
+    // Show spinner
+    button.innerHTML =
+      '<img src="https://giphy.com/embed/3oEjI6SIIHBdRxXI40" width="20px" height="20px">';
+    button.disabled = true;
+
     try {
       await contract.registerPassenger(account);
 
@@ -43,6 +52,10 @@ const account = accounts[0];
     } catch (error) {
       console.error(error);
       displayMessage("Passenger registration failed!");
+    } finally {
+      // Hide spinner and revert button state
+      button.innerHTML = originalButtonHTML;
+      button.disabled = false;
     }
   });
 
@@ -156,6 +169,18 @@ const account = accounts[0];
 
     flightCard.appendChild(flightInfo);
 
+    // Converting the timestamp to Unix format
+    let timestampInSeconds = Math.floor(
+      new Date(flight.timestamp).getTime() / 1000
+    );
+
+    // Create flightKey in the same way as the contract does
+    let flightKey = web3.utils.soliditySha3(
+      { t: "address", v: flight.airlineAddress }, // assuming flight.airlineAddress is available
+      { t: "string", v: flight.flightNumber },
+      { t: "uint256", v: timestampInSeconds } // ensure this timestamp is in the right format
+    );
+
     const buyButton = DOM.button(
       { className: "btn btn-primary" },
       "Buy Insurance"
@@ -167,19 +192,13 @@ const account = accounts[0];
     buyButton.addEventListener("click", async (event) => {
       event.preventDefault();
 
+      // Save current button state and show spinner
+      const originalButtonHTML = buyButton.innerHTML;
+      buyButton.innerHTML =
+        '<img src="https://giphy.com/embed/3oEjI6SIIHBdRxXI40" width="20px" height="20px">';
+      buyButton.disabled = true;
+
       try {
-        // Converting the timestamp to Unix format
-        let timestampInSeconds = Math.floor(
-          new Date(flight.timestamp).getTime() / 1000
-        );
-
-        // Create flightKey in the same way as the contract does
-        let flightKey = web3.utils.soliditySha3(
-          { t: "address", v: flight.airlineAddress }, // assuming flight.airlineAddress is available
-          { t: "string", v: flight.flightNumber },
-          { t: "uint256", v: timestampInSeconds } // ensure this timestamp is in the right format
-        );
-
         // Prompt the user for the value of the insurance they want to purchase
         let valueInEth = prompt(
           "Enter the amount of insurance you want to purchase (in ETH):"
@@ -196,6 +215,10 @@ const account = accounts[0];
       } catch (error) {
         console.error(error);
         displayMessage("Insurance purchase failed!");
+
+        // Hide spinner and revert button state
+        buyButton.innerHTML = originalButtonHTML;
+        buyButton.disabled = false;
       }
     });
 
