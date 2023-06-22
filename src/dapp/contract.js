@@ -87,14 +87,11 @@ export default class Contract {
   async registerPassenger(passengerAddress) {
     let self = this;
     try {
-      console.log("Calling registerPassenger in flightSuretyApp");
       const result = await self.flightSuretyApp.methods
         .registerPassenger(passengerAddress)
         .send({ from: passengerAddress, gas: 200000 });
-      console.log("here is the result", result);
       return result;
     } catch (error) {
-      console.log("here is the error", error);
       throw error;
     }
   }
@@ -140,6 +137,18 @@ export default class Contract {
       } else {
         console.log("The account is not a registered airline");
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async buy(flightKey, account, value) {
+    let self = this;
+    try {
+      const result = await self.flightSuretyApp.methods
+        .buy(flightKey)
+        .send({ from: account, value: value, gas: 200000 });
+      return result;
     } catch (error) {
       throw error;
     }

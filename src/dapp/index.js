@@ -1,6 +1,8 @@
 import DOM from "./dom";
 import Contract from "./contract";
 import "./flightsurety.css";
+const Web3 = require("web3");
+const web3 = new Web3(window.ethereum);
 
 (async () => {
   let result = null;
@@ -17,13 +19,11 @@ import "./flightsurety.css";
 
   // Register as Passenger
   DOM.elid("register-passenger").addEventListener("click", async () => {
-    console.log("Passenger button clicked");
     try {
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       const account = accounts[0];
-      console.log("Calling registerPassenger in contract.js");
       await contract.registerPassenger(account);
     } catch (error) {
       console.error(error);
@@ -75,6 +75,11 @@ import "./flightsurety.css";
       timestamp: "06/18/2023 09:00:00 GMT",
     },
   ];
+
+  // Adding the airline addresses to the flight objects in the above array
+  flights.forEach((flight) => {
+    flight.airlineAddress = contract.airlines[flight.addressIndex];
+  });
 
   // Show spinner
   document.getElementById("spinner").style.display = "block";
@@ -138,8 +143,35 @@ import "./flightsurety.css";
       "Buy Insurance"
     );
 
-    buyButton.addEventListener("click", () => {
-      // contract.buy(contract.getFlightKey(...));
+    buyButton.addEventListener("click", async () => {
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        const account = accounts[0];
+
+        // Converting the timestamp to Unix format
+        let timestampInSeconds = Math.floor(
+          new Date(flight.timestamp).getTime() / 1000
+        );
+
+        // Create flightKey in the same way as the contract does
+        let flightKey = web3.utils.soliditySha3(
+          { t: "address", v: flight.airlineAddress }, // assuming flight.airlineAddress is available
+          { t: "string", v: flight.flightNumber },
+          { t: "uint256", v: timestampInSeconds } // ensure this timestamp is in the right format
+        );
+
+        // Prompt the user for the value of the insurance they want to purchase
+        let valueInEth = prompt(
+          "Enter the amount of insurance you want to purchase (in ETH):"
+        );
+        let valueInWei = web3.utils.toWei(valueInEth, "ether");
+
+        await contract.buy(flightKey, account, valueInWei);
+      } catch (error) {
+        console.error(error);
+      }
     });
 
     flightCard.appendChild(buyButton);

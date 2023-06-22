@@ -35,9 +35,9 @@ contract FlightSuretyApp {
         uint256 updatedTimestamp;
         address airline;
     }
-    mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => Flight) private flights; // maps flightKey to flight
 
-    mapping(bytes32 => bytes32) private flightKeys;
+    mapping(bytes32 => bytes32) private flightKeys; // maps lookupKey to flightKey
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -108,6 +108,14 @@ contract FlightSuretyApp {
         return false;
     }
 
+    /**
+     * @dev function so that we can retrieve the flightKey for a given lookupKey
+     * from the client dapp
+     */
+    function getFlightKey(bytes32 _lookupKey) public view returns (bytes32) {
+        return flightKeys[_lookupKey];
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -164,7 +172,7 @@ contract FlightSuretyApp {
     /**
      * @dev Function called by the passenger to buy insurance for a flight
      */
-    function buy(bytes32 _flightKey) external {
+    function buy(bytes32 _flightKey) external payable {
         require(
             flightSuretyData.isPassenger(msg.sender),
             "You are not a passenger"
