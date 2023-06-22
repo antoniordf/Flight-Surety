@@ -22,8 +22,13 @@ const account = accounts[0];
     { label: "Operational Status", error: null, value: operationalStatus },
   ]);
 
+  // Check if user is registered as a passenger
+  const isRegistered = await contract.isRegisteredPassenger(account);
+
   // Register as Passenger
-  DOM.elid("register-passenger").addEventListener("click", async () => {
+  DOM.elid("register-passenger").addEventListener("click", async (event) => {
+    event.preventDefault();
+
     try {
       await contract.registerPassenger(account);
 
@@ -42,7 +47,9 @@ const account = accounts[0];
   });
 
   // Submit to Oracle
-  DOM.elid("submit-oracle").addEventListener("click", async () => {
+  DOM.elid("submit-oracle").addEventListener("click", async (event) => {
+    event.preventDefault();
+
     let flight = DOM.elid("flight-number").value;
     // Write transaction
     try {
@@ -157,7 +164,9 @@ const account = accounts[0];
     // Disable button by default
     buyButton.disabled = true;
 
-    buyButton.addEventListener("click", async () => {
+    buyButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+
       try {
         // Converting the timestamp to Unix format
         let timestampInSeconds = Math.floor(
@@ -193,6 +202,14 @@ const account = accounts[0];
     flightCard.appendChild(buyButton);
 
     DOM.elid("flight-card-container").appendChild(flightCard);
+
+    // If user is registered, enable all buy buttons
+    if (isRegistered) {
+      const buyButtons = document.querySelectorAll(".btn-primary");
+      buyButtons.forEach((button) => {
+        button.disabled = false;
+      });
+    }
   });
 })();
 
@@ -216,6 +233,10 @@ function display(title, description, results) {
 }
 
 function displayMessage(message) {
-  DOM.elid("message-box").style.display = "block";
-  DOM.elid("message-box").innerHTML = message;
+  const messageBox = DOM.elid("message-box");
+  messageBox.style.display = "block";
+  messageBox.innerHTML = message;
+  setTimeout(() => {
+    messageBox.style.display = "none";
+  }, 3000); // Hide the message box after 3 seconds
 }

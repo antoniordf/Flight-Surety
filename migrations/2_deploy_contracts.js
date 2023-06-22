@@ -19,12 +19,6 @@ module.exports = async function (deployer, network, accounts) {
   // set FlightSuretyApp contract as an approved caller
   await flightSuretyData.authorizeCaller(flightSuretyApp.address);
 
-  // fund contract as an approved airline
-  // await flightSuretyApp.fund({
-  //   from: firstAirline,
-  //   value: web3.utils.toWei("10", "ether"),
-  // });
-
   let config = {
     localhost: {
       url: "http://localhost:9545",

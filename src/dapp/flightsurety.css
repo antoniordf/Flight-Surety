@@ -79,3 +79,9 @@ input {
     transform: rotate(360deg);
   }
 }
+
+#message-box {
+  color: black;
+  font-weight: bold;
+  background-color: lightyellow;
+}
