@@ -4,6 +4,11 @@ import "./flightsurety.css";
 const Web3 = require("web3");
 const web3 = new Web3(window.ethereum);
 
+const accounts = await window.ethereum.request({
+  method: "eth_requestAccounts",
+});
+const account = accounts[0];
+
 (async () => {
   let result = null;
 
@@ -20,13 +25,19 @@ const web3 = new Web3(window.ethereum);
   // Register as Passenger
   DOM.elid("register-passenger").addEventListener("click", async () => {
     try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      const account = accounts[0];
       await contract.registerPassenger(account);
+
+      // Display result to user
+      displayMessage("Passenger registered successfully!");
+
+      // Once registered, enable all buy buttons
+      const buyButtons = document.querySelectorAll(".btn-primary");
+      buyButtons.forEach((button) => {
+        button.disabled = false;
+      });
     } catch (error) {
       console.error(error);
+      displayMessage("Passenger registration failed!");
     }
   });
 
@@ -143,13 +154,11 @@ const web3 = new Web3(window.ethereum);
       "Buy Insurance"
     );
 
+    // Disable button by default
+    buyButton.disabled = true;
+
     buyButton.addEventListener("click", async () => {
       try {
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        const account = accounts[0];
-
         // Converting the timestamp to Unix format
         let timestampInSeconds = Math.floor(
           new Date(flight.timestamp).getTime() / 1000
@@ -168,9 +177,16 @@ const web3 = new Web3(window.ethereum);
         );
         let valueInWei = web3.utils.toWei(valueInEth, "ether");
 
+        // Purchase the insurance
         await contract.buy(flightKey, account, valueInWei);
+
+        // inform the user of insurance purchase
+        buyButton.style.backgroundColor = "green";
+        buyButton.innerText = "Purchased";
+        displayMessage("Insurance purchased successfully!");
       } catch (error) {
         console.error(error);
+        displayMessage("Insurance purchase failed!");
       }
     });
 
@@ -197,4 +213,9 @@ function display(title, description, results) {
     section.appendChild(row);
   });
   displayDiv.append(section);
+}
+
+function displayMessage(message) {
+  DOM.elid("message-box").style.display = "block";
+  DOM.elid("message-box").innerHTML = message;
 }

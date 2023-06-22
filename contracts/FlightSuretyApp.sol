@@ -90,6 +90,15 @@ contract FlightSuretyApp {
     }
 
     /**
+     * @dev function so that client dapp can check if a passenger is registered
+     */
+    function checkPassengerRegistered(
+        address _passenger
+    ) public view returns (bool) {
+        return flightSuretyData.isRegisteredPassenger(_passenger);
+    }
+
+    /**
      * @dev function so that we can check if a flight is registered from the data contract
      */
     function isRegisteredFlight(

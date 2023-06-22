@@ -153,6 +153,18 @@ export default class Contract {
       throw error;
     }
   }
+
+  async isRegisteredPassenger(account) {
+    let self = this;
+    try {
+      const result = await self.flightSuretyApp.methods
+        .checkPassengerRegistered(account)
+        .call();
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 function convertTimestamp(timestamp) {
