@@ -57,6 +57,24 @@ app.get("/api", (req, res) => {
   res.send({
     message: "An API for use with your Dapp!",
   });
+
+  // Endpoint for oracle to fetch flight status
+  app.get("/api/oracles/:flight", async (req, res) => {
+    const flight = req.params.flight;
+
+    try {
+      // Fetch flight status using the contract method
+      const result = await flightSuretyApp.methods
+        .fetchFlightStatus(flight)
+        .call();
+
+      // Return the flight status as a response
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "An error occurred" });
+    }
+  });
 });
 
 // const port = 3000;
