@@ -11,9 +11,9 @@
     "test": "truffle test ./test/flightSurety.js",
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
-    "build:server": "webpack --config ./webpack.config.server.js",
+    "build:server": "webpack --config ./webpack.config.server.js && exit 0",
     "server": "nodemon ./prod/server/server.js",
-    "start": "npm run build:server && npm run server"
+    "start": "npm run build:server && echo 'After build:server' && echo 'Build complete' && npm run server"
   },
   "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com",
   "devDependencies": {

@@ -13,6 +13,35 @@ let flightSuretyApp = new web3.eth.Contract(
   config.appAddress
 );
 
+// Get a list of available accounts
+const accounts = await web3.eth.getAccounts();
+
+// Available accounts that can be used
+const availableAccounts = [6, 7, 8];
+
+(async () => {
+  try {
+    // Retrieving registration fee from contract
+    const registrationFee = await flightSuretyApp.methods
+      .REGISTRATION_FEE()
+      .call();
+
+    // Registering Oracles
+    const promises = availableAccounts.map(async (accountIndex) => {
+      const oracleAddress = accounts[accountIndex];
+      await flightSuretyApp.methods.registerOracle().send({
+        from: oracleAddress,
+        value: registrationFee,
+        gas: 200000,
+      });
+    });
+
+    await Promise.all(promises);
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
 flightSuretyApp.events.OracleRequest(
   {
     fromBlock: 0,
