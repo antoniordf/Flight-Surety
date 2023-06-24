@@ -64,9 +64,13 @@ const account = accounts[0];
     event.preventDefault();
 
     let flight = DOM.elid("flight-number").value;
+    console.log("Flight Number:", flight);
     // Write transaction
     try {
       let result = await contract.fetchFlightStatus(flight);
+      console.log("Fetch Flight Status Result:", result);
+      console.log("Flight:", result.flight);
+      console.log("Timestamp:", result.timestamp);
       display("Oracles", "Trigger oracles", [
         {
           label: "Fetch Flight Status",

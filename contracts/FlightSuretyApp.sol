@@ -125,6 +125,26 @@ contract FlightSuretyApp {
         return flightKeys[_lookupKey];
     }
 
+    /**
+     * @dev function called by the server to get the oracle responses.
+     */
+    function getOracleResponse(
+        uint8 index,
+        string memory flight,
+        uint256 timestamp,
+        uint8 statusCode
+    ) public view returns (address[] memory) {
+        bytes32 key = keccak256(abi.encodePacked(index, flight, timestamp));
+        return oracleResponses[key].responses[statusCode];
+    }
+
+    /**
+     * Getter function to retrieve the list of registered oracle addresses
+     */
+    function getRegisteredOracles() public view returns (address[] memory) {
+        return registeredOracles;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -261,12 +281,16 @@ contract FlightSuretyApp {
     uint256 private constant MIN_RESPONSES = 3;
 
     struct Oracle {
+        address oracleAddress;
         bool isRegistered;
         uint8[3] indexes;
     }
 
     // Track all registered oracles
     mapping(address => Oracle) private oracles;
+
+    // Track all registered oracle addresses
+    address[] private registeredOracles;
 
     // Model for responses from oracles
     struct ResponseInfo {
@@ -313,7 +337,14 @@ contract FlightSuretyApp {
 
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
-        oracles[msg.sender] = Oracle({isRegistered: true, indexes: indexes});
+        oracles[msg.sender] = Oracle({
+            oracleAddress: msg.sender,
+            isRegistered: true,
+            indexes: indexes
+        });
+
+        // Add the oracle address to the list of registered oracles
+        registeredOracles.push(msg.sender);
     }
 
     function getMyIndexes() external view returns (uint8[3] memory) {

@@ -19,7 +19,7 @@ const accounts = await web3.eth.getAccounts();
 // Available accounts that can be used
 const availableAccounts = [6, 7, 8];
 
-(async () => {
+async function registerOracles() {
   try {
     // Retrieving registration fee from contract
     const registrationFee = await flightSuretyApp.methods
@@ -40,6 +40,11 @@ const availableAccounts = [6, 7, 8];
   } catch (error) {
     console.error(error);
   }
+}
+
+(async () => {
+  // Register oracles when server starts
+  await registerOracles();
 })();
 
 flightSuretyApp.events.OracleRequest(
@@ -49,31 +54,73 @@ flightSuretyApp.events.OracleRequest(
   function (error, event) {
     if (error) console.log(error);
     console.log(event);
+
+    // Retrieve index and flight information from the event
+    const index = event.returnValues.index;
+    const airline = event.returnValues.airline;
+    const flight = event.returnValues.flight;
+    const timestamp = event.returnValues.timestamp;
+
+    // Generate a random status code for the flight
+    const statusCode = generateRandomStatus();
+
+    // Process the oracle responses
+    processOracleResponse(index, airline, flight, timestamp, statusCode);
   }
 );
+
+async function processOracleResponse(
+  index,
+  airline,
+  flight,
+  timestamp,
+  statusCode
+) {
+  try {
+    // Get registered oracle addresses
+    const oracleAddresses = await flightSuretyApp.methods
+      .getRegisteredOracles()
+      .call();
+
+    // Loop through each registered oracle
+    for (let oracleAddress of oracleAddresses) {
+      // Get the indexes of the oracle
+      const oracleIndexes = await flightSuretyApp.methods
+        .getMyIndexes()
+        .call({ from: oracleAddress });
+
+      for (let i = 0; i < oracleIndexes.length; i++) {
+        const oracleIndex = oracleIndexes[i];
+
+        // Check if oracle is eligible to respond
+        const oracleResponses = await flightSuretyApp.methods
+          .getOracleResponse(oracleIndex, flight, timestamp, statusCode)
+          .call();
+        const isEligible = oracleResponses.length > 0;
+
+        if (isEligible) {
+          // Submit oracle response
+          await flightSuretyApp.methods
+            .submitOracleResponse(index, airline, flight, timestamp, statusCode)
+            .send({ from: oracleAddress });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function generateRandomStatus() {
+  const statusCodes = [0, 10, 20, 30, 40, 50];
+  const randomIndex = Math.floor(Math.random() * statusCodes.length);
+  return statusCodes[randomIndex];
+}
 
 const app = express();
 app.get("/api", (req, res) => {
   res.send({
     message: "An API for use with your Dapp!",
-  });
-
-  // Endpoint for oracle to fetch flight status
-  app.get("/api/oracles/:flight", async (req, res) => {
-    const flight = req.params.flight;
-
-    try {
-      // Fetch flight status using the contract method
-      const result = await flightSuretyApp.methods
-        .fetchFlightStatus(flight)
-        .call();
-
-      // Return the flight status as a response
-      res.json(result);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "An error occurred" });
-    }
   });
 });
 
