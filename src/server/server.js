@@ -17,7 +17,7 @@ let flightSuretyApp = new web3.eth.Contract(
 const accounts = await web3.eth.getAccounts();
 
 // Available accounts that can be used
-const availableAccounts = [6, 7, 8];
+const availableAccounts = [accounts[6], accounts[7], accounts[8]];
 
 async function registerOracles() {
   try {
@@ -25,15 +25,17 @@ async function registerOracles() {
     const registrationFee = await flightSuretyApp.methods
       .REGISTRATION_FEE()
       .call();
+    console.log("Here is the registration fee", registrationFee);
 
     // Registering Oracles
-    const promises = availableAccounts.map(async (accountIndex) => {
-      const oracleAddress = accounts[accountIndex];
-      await flightSuretyApp.methods.registerOracle().send({
-        from: oracleAddress,
+    const promises = availableAccounts.map(async (account) => {
+      console.log("Here is the oracle address", account);
+      const result = await flightSuretyApp.methods.registerOracle().send({
+        from: account,
         value: registrationFee,
         gas: 200000,
       });
+      console.log("Here is the result of registering the Oracle", result);
     });
 
     await Promise.all(promises);
@@ -57,14 +59,20 @@ flightSuretyApp.events.OracleRequest(
 
     // Retrieve index and flight information from the event
     const index = event.returnValues.index;
+    console.log("Here is the index", index);
     const airline = event.returnValues.airline;
+    console.log("Here is the airline", airline);
     const flight = event.returnValues.flight;
+    console.log("Here is the flight", flight);
     const timestamp = event.returnValues.timestamp;
+    console.log("Here is the timestamp", timestamp);
 
     // Generate a random status code for the flight
     const statusCode = generateRandomStatus();
+    console.log("Here is the status code", statusCode);
 
     // Process the oracle responses
+    console.log("I'm about to call processOracleResponse");
     processOracleResponse(index, airline, flight, timestamp, statusCode);
   }
 );
@@ -81,28 +89,38 @@ async function processOracleResponse(
     const oracleAddresses = await flightSuretyApp.methods
       .getRegisteredOracles()
       .call();
+    console.log("Here are the oracle addresses", oracleAddresses);
 
     // Loop through each registered oracle
     for (let oracleAddress of oracleAddresses) {
       // Get the indexes of the oracle
-      const oracleIndexes = await flightSuretyApp.methods
+      let oracleIndexes = await flightSuretyApp.methods
         .getMyIndexes()
         .call({ from: oracleAddress });
+      oracleIndexes = oracleIndexes.map((index) => parseInt(index));
+      console.log("Here are the oracle indexes", oracleIndexes);
 
       for (let i = 0; i < oracleIndexes.length; i++) {
         const oracleIndex = oracleIndexes[i];
+        console.log("Oracle Index", oracleIndex);
 
         // Check if oracle is eligible to respond
         const oracleResponses = await flightSuretyApp.methods
           .getOracleResponse(oracleIndex, flight, timestamp, statusCode)
           .call();
+        console.log("Here are the oracle responses", oracleResponses);
         const isEligible = oracleResponses.length > 0;
+        console.log("isEligible", isEligible);
 
         if (isEligible) {
           // Submit oracle response
-          await flightSuretyApp.methods
+          const result = await flightSuretyApp.methods
             .submitOracleResponse(index, airline, flight, timestamp, statusCode)
             .send({ from: oracleAddress });
+          console.log(
+            "Here is the result of calling submitOracleResponse",
+            result
+          );
         }
       }
     }
