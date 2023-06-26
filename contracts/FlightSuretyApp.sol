@@ -332,6 +332,10 @@ contract FlightSuretyApp {
 
     // Register an oracle with the contract
     function registerOracle() external payable {
+        // Skip registration if oracle is already registered
+        if (oracles[msg.sender].isRegistered == true) {
+            return;
+        }
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
 
