@@ -1,4 +1,5 @@
 import FlightSuretyApp from "../../build/contracts/FlightSuretyApp.json";
+import FlightSuretyData from "../../build/contracts/FlightSuretyData.json";
 import Config from "./config.json";
 import Web3 from "web3";
 import express from "express";
@@ -13,11 +14,20 @@ let flightSuretyApp = new web3.eth.Contract(
   config.appAddress
 );
 
+let flightSuretyData = new web3.eth.Contract(
+  FlightSuretyData.abi,
+  config.dataAddress
+);
+
 // Get a list of available accounts
 const accounts = await web3.eth.getAccounts();
 
 // Available accounts that can be used
 const availableAccounts = [accounts[6], accounts[7], accounts[8]];
+
+//******************************************************************************
+//                           ORACLE REGISTRATION
+//******************************************************************************
 
 async function registerOracles() {
   try {
@@ -49,6 +59,10 @@ async function registerOracles() {
   await registerOracles();
 })();
 
+//******************************************************************************
+//                             EVENT LISTENERS
+//******************************************************************************
+
 flightSuretyApp.events.OracleRequest(
   {
     fromBlock: 0,
@@ -77,6 +91,20 @@ flightSuretyApp.events.OracleRequest(
   }
 );
 
+flightSuretyData.events.InsureesCredited(
+  {
+    fromBlock: 0,
+  },
+  function (error, event) {
+    if (error) console.log(error);
+    console.log(event);
+  }
+);
+
+//******************************************************************************
+//                             HELPER FUNCTIONS
+//******************************************************************************
+
 async function processOracleResponse(
   index,
   airline,
@@ -94,34 +122,26 @@ async function processOracleResponse(
     // Loop through each registered oracle
     for (let oracleAddress of oracleAddresses) {
       // Get the indexes of the oracle
+      console.log("Before getMyIndexes");
       let oracleIndexes = await flightSuretyApp.methods
         .getMyIndexes()
         .call({ from: oracleAddress });
       oracleIndexes = oracleIndexes.map((index) => parseInt(index));
       console.log("Here are the oracle indexes", oracleIndexes);
 
-      for (let i = 0; i < oracleIndexes.length; i++) {
-        const oracleIndex = oracleIndexes[i];
-        console.log("Oracle Index", oracleIndex);
+      // Check if the oracle is eligible to respond
+      const isEligible = oracleIndexes.includes(parseInt(index));
+      console.log("isEligible", isEligible);
 
-        // Check if oracle is eligible to respond
-        const oracleResponses = await flightSuretyApp.methods
-          .getOracleResponse(oracleIndex, flight, timestamp, statusCode)
-          .call();
-        console.log("Here are the oracle responses", oracleResponses);
-        const isEligible = oracleResponses.length > 0;
-        console.log("isEligible", isEligible);
-
-        if (isEligible) {
-          // Submit oracle response
-          const result = await flightSuretyApp.methods
-            .submitOracleResponse(index, airline, flight, timestamp, statusCode)
-            .send({ from: oracleAddress });
-          console.log(
-            "Here is the result of calling submitOracleResponse",
-            result
-          );
-        }
+      if (isEligible) {
+        // Submit oracle response
+        const result = await flightSuretyApp.methods
+          .submitOracleResponse(index, airline, flight, timestamp, statusCode)
+          .send({ from: oracleAddress, gas: 200000 });
+        console.log(
+          "Here is the result of calling submitOracleResponse",
+          result
+        );
       }
     }
   } catch (error) {
@@ -132,8 +152,12 @@ async function processOracleResponse(
 function generateRandomStatus() {
   const statusCodes = [0, 10, 20, 30, 40, 50];
   const randomIndex = Math.floor(Math.random() * statusCodes.length);
-  return statusCodes[randomIndex];
+  return 20; //statusCodes[randomIndex];
 }
+
+//******************************************************************************
+//                                   APP
+//******************************************************************************
 
 const app = express();
 app.get("/api", (req, res) => {
