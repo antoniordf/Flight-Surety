@@ -138,6 +138,7 @@ async function processOracleResponse(
         const result = await flightSuretyApp.methods
           .submitOracleResponse(index, airline, flight, timestamp, statusCode)
           .send({ from: oracleAddress, gas: 200000 });
+
         console.log(
           "Here is the result of calling submitOracleResponse",
           result
