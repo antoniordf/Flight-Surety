@@ -2,6 +2,7 @@ import FlightSuretyApp from "../../build/contracts/FlightSuretyApp.json";
 import FlightSuretyData from "../../build/contracts/FlightSuretyData.json";
 import Config from "./config.json";
 import Web3 from "web3";
+import { EventEmitter } from "events";
 
 export default class Contract {
   constructor(network) {
@@ -9,6 +10,12 @@ export default class Contract {
     this.web3 = new Web3(
       new Web3.providers.WebsocketProvider(config.url.replace("http", "ws"))
     );
+
+    // Keeps track of the latest information returned from the event emitted by the contract.
+    this.flightStatusInfo = null;
+
+    // Creates a new instance of event emitter.
+    this.events = new EventEmitter();
 
     this.flightSuretyApp = new this.web3.eth.Contract(
       FlightSuretyApp.abi,
@@ -38,15 +45,6 @@ export default class Contract {
       while (this.passengers.length < 5) {
         this.passengers.push(accts[counter++]);
       }
-
-      // Start listening for FlightStatusInfo events
-      this.listenToFlightStatusInfoEvent((err, event) => {
-        if (err) {
-          console.error("Error in FlightStatusInfo event: ", err);
-          return;
-        }
-        console.log("Received a FlightStatusInfo event: ", event);
-      });
     } catch (error) {
       console.error("Failed to initialize:", error);
     }
@@ -178,20 +176,32 @@ export default class Contract {
     }
   }
 
+  // Event listener for updated flight details emitted by contract.
   listenToFlightStatusInfoEvent(callback) {
     this.flightSuretyApp.events
       .FlightStatusInfo({
         fromBlock: 0,
       })
       .on("data", (event) => {
-        callback(null, event);
+        this.flightStatusInfo = event;
+        this.events.emit("FlightStatusInfoReceived", event);
       })
       .on("changed", (event) => {
-        callback(null, event);
+        this.flightStatusInfo = event;
+        this.events.emit("FlightStatusInfoReceived", event);
       })
       .on("error", callback);
   }
+
+  // getter method to retrieve flight status info.
+  getFlightStatusInfo() {
+    return this.flightStatusInfo;
+  }
 }
+
+//******************************************************************************
+//                             HELPER FUNCTIONS
+//******************************************************************************
 
 function convertTimestamp(timestamp) {
   const convertedTimestamp = new Date(timestamp);

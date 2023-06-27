@@ -66,6 +66,24 @@ const account = accounts[0];
     // Write transaction
     try {
       await contract.fetchFlightStatus(flight);
+
+      // Wait for the FlightStatusInfo event
+      contract.events.once("FlightStatusInfoReceived", async () => {
+        // Update flight status
+        const flightStatusInfo = await contract.getFlightStatusInfo();
+        console.log("I am printing from index.js", flightStatusInfo);
+
+        // Display updated information to browser
+        let flight = flightStatusInfo.returnValues.flight;
+        let timestamp = displayDate(flightStatusInfo.returnValues.timestamp);
+        let status = displayStatusMessage(flightStatusInfo.returnValues.status);
+        display("Oracles", "Trigger oracles", [
+          {
+            label: "Fetch Flight Status",
+            value: flight + " " + timestamp + " " + status,
+          },
+        ]);
+      });
     } catch (error) {
       console.error(error);
     }
@@ -256,4 +274,40 @@ function displayMessage(message) {
   setTimeout(() => {
     messageBox.style.display = "none";
   }, 3000); // Hide the message box after 3 seconds
+}
+
+function displayStatusMessage(statusCode) {
+  const statusCodes = {
+    0: "STATUS_CODE_UNKNOWN",
+    10: "ON TIME",
+    20: "AIRLINE DELAYED",
+    30: "DELAYED DUE TO WEATHER",
+    40: "DELAYED DUE TO TECHNICAL ISSUES",
+    50: "DELAYED DUE TO OTHER",
+  };
+
+  return statusCodes[statusCode];
+}
+
+function displayDate(timestamp) {
+  let date = new Date(timestamp * 1000);
+
+  let day = date.getDate();
+  let month = date.getMonth() + 1; // Javascript months are 0-based indexing
+  let year = date.getFullYear();
+
+  // Getting the hours and minutes
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+
+  // Ensure leading zero if day or month or hours or minutes is less than 10
+  day = day < 10 ? "0" + day : day;
+  month = month < 10 ? "0" + month : month;
+  hours = hours < 10 ? "0" + hours : hours;
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+
+  let formattedTime =
+    day + "/" + month + "/" + year + " " + hours + ":" + minutes;
+
+  return formattedTime;
 }
