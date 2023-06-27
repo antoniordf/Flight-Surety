@@ -23,7 +23,7 @@ module.exports = {
           mnemonic: {
             phrase: MNEMONIC,
           },
-          providerOrUrl: `https://sepolia.infura.io/v3/${PROJECT_ID}`,
+          providerOrUrl: `wss://sepolia.infura.io/v3/${PROJECT_ID}`,
         }),
       network_id: 11155111,
       confirmations: 2,

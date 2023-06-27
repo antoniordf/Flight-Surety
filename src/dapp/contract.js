@@ -6,7 +6,10 @@ import Web3 from "web3";
 export default class Contract {
   constructor(network) {
     let config = Config[network];
-    this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
+    this.web3 = new Web3(
+      new Web3.providers.WebsocketProvider(config.url.replace("http", "ws"))
+    );
+
     this.flightSuretyApp = new this.web3.eth.Contract(
       FlightSuretyApp.abi,
       config.appAddress
@@ -35,6 +38,15 @@ export default class Contract {
       while (this.passengers.length < 5) {
         this.passengers.push(accts[counter++]);
       }
+
+      // Start listening for FlightStatusInfo events
+      this.listenToFlightStatusInfoEvent((err, event) => {
+        if (err) {
+          console.error("Error in FlightStatusInfo event: ", err);
+          return;
+        }
+        console.log("Received a FlightStatusInfo event: ", event);
+      });
     } catch (error) {
       console.error("Failed to initialize:", error);
     }
@@ -164,6 +176,20 @@ export default class Contract {
     } catch (error) {
       throw error;
     }
+  }
+
+  listenToFlightStatusInfoEvent(callback) {
+    this.flightSuretyApp.events
+      .FlightStatusInfo({
+        fromBlock: 0,
+      })
+      .on("data", (event) => {
+        callback(null, event);
+      })
+      .on("changed", (event) => {
+        callback(null, event);
+      })
+      .on("error", callback);
   }
 }
 

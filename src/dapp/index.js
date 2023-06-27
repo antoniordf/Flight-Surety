@@ -10,12 +10,11 @@ const accounts = await window.ethereum.request({
 const account = accounts[0];
 
 (async () => {
-  let result = null;
-
   let contract = new Contract("localhost");
 
   await contract.initialize();
 
+  // Check operational status
   let operationalStatus = await contract.isOperational();
   console.log(operationalStatus);
   display("Operational Status", "Check if contract is operational", [
@@ -64,20 +63,9 @@ const account = accounts[0];
     event.preventDefault();
 
     let flight = DOM.elid("flight-number").value;
-    console.log("Flight Number:", flight);
     // Write transaction
     try {
-      let result = await contract.fetchFlightStatus(flight);
-      console.log("Fetch Flight Status Result:", result);
-      console.log("Flight:", result.flight);
-      console.log("Timestamp:", result.timestamp);
-      display("Oracles", "Trigger oracles", [
-        {
-          label: "Fetch Flight Status",
-          error: null,
-          value: result.flight + " " + result.timestamp,
-        },
-      ]);
+      await contract.fetchFlightStatus(flight);
     } catch (error) {
       console.error(error);
     }
@@ -152,8 +140,6 @@ const account = accounts[0];
         } catch (error) {
           console.error("Error generated while registering flight", error);
         }
-
-        return { fundResult, registerAirlineResult, registerFlightResult };
       })
     );
   } catch (error) {
@@ -239,6 +225,10 @@ const account = accounts[0];
     }
   });
 })();
+
+//******************************************************************************
+//                             HELPER FUNCTIONS
+//******************************************************************************
 
 function display(title, description, results) {
   let displayDiv = DOM.elid("display-wrapper");

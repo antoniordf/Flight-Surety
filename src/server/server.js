@@ -67,7 +67,7 @@ flightSuretyApp.events.OracleRequest(
   {
     fromBlock: 0,
   },
-  function (error, event) {
+  (error, event) => {
     if (error) console.log(error);
     console.log(event);
 
@@ -95,7 +95,7 @@ flightSuretyData.events.InsureesCredited(
   {
     fromBlock: 0,
   },
-  function (error, event) {
+  (error, event) => {
     if (error) console.log(error);
     console.log(event);
   }
