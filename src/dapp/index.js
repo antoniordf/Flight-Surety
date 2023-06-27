@@ -86,6 +86,12 @@ const account = accounts[0];
       });
     } catch (error) {
       console.error(error);
+      display("Oracles", "Trigger oracles", [
+        {
+          error: "An error has occurred",
+          value: error.message,
+        },
+      ]);
     }
   });
 

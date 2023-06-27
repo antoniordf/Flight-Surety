@@ -45,6 +45,15 @@ export default class Contract {
       while (this.passengers.length < 5) {
         this.passengers.push(accts[counter++]);
       }
+
+      // Start listening for FlightStatusInfo events
+      this.listenToFlightStatusInfoEvent((err, event) => {
+        if (err) {
+          console.error("Error in FlightStatusInfo event: ", err);
+          return;
+        }
+        console.log("Received a FlightStatusInfo event: ", event);
+      });
     } catch (error) {
       console.error("Failed to initialize:", error);
     }
