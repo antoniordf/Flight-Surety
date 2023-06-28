@@ -153,7 +153,7 @@ async function processOracleResponse(
 function generateRandomStatus() {
   const statusCodes = [0, 10, 20, 30, 40, 50];
   const randomIndex = Math.floor(Math.random() * statusCodes.length);
-  return 20; //statusCodes[randomIndex];
+  return statusCodes[randomIndex];
 }
 
 //******************************************************************************
