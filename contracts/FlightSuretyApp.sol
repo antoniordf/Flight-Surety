@@ -242,7 +242,7 @@ contract FlightSuretyApp {
             bytes32 flightKey = flightKeys[lookupKey];
             require(
                 flights[flightKey].isRegistered,
-                "Flight is not registerred"
+                "Flight is not registered"
             );
             flights[flightKey].statusCode = _statusCode;
             flights[flightKey].updatedTimestamp = _timestamp;

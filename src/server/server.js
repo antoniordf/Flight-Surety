@@ -23,7 +23,7 @@ let flightSuretyData = new web3.eth.Contract(
 const accounts = await web3.eth.getAccounts();
 
 // Available accounts that can be used
-const availableAccounts = [accounts[6], accounts[7], accounts[8]];
+const oracles = accounts.slice(0, 20);
 
 //******************************************************************************
 //                           ORACLE REGISTRATION
@@ -38,7 +38,7 @@ async function registerOracles() {
     console.log("Here is the registration fee", registrationFee);
 
     // Registering Oracles
-    const promises = availableAccounts.map(async (account) => {
+    const promises = oracles.map(async (account) => {
       console.log("Here is the oracle address", account);
       const result = await flightSuretyApp.methods.registerOracle().send({
         from: account,
@@ -153,7 +153,7 @@ async function processOracleResponse(
 function generateRandomStatus() {
   const statusCodes = [0, 10, 20, 30, 40, 50];
   const randomIndex = Math.floor(Math.random() * statusCodes.length);
-  return statusCodes[randomIndex];
+  return 20; // statusCodes[randomIndex];
 }
 
 //******************************************************************************

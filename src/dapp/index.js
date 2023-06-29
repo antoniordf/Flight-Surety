@@ -139,6 +139,7 @@ const account = accounts[0];
         let fundResult;
         try {
           fundResult = await contract.fund(flight.addressIndex);
+          console.log("I have funded the airline", fundResult);
         } catch (error) {
           console.error(error);
         }
@@ -149,6 +150,7 @@ const account = accounts[0];
           registerAirlineResult = await contract.registerAirline(
             flight.addressIndex
           );
+          console.log("I have registered the airline", registerAirlineResult);
         } catch (error) {
           console.error("Error generated while registering airline", error);
         }
@@ -161,6 +163,7 @@ const account = accounts[0];
             flight.flightNumber,
             flight.timestamp
           );
+          console.log("I have registered the flight", registerFlightResult);
         } catch (error) {
           console.error("Error generated while registering flight", error);
         }
