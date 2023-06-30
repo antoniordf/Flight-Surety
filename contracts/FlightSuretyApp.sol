@@ -278,7 +278,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint256 public constant MIN_RESPONSES = 3;
 
     struct Oracle {
         address oracleAddress;
@@ -392,7 +392,7 @@ contract FlightSuretyApp {
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
         if (
-            oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES
+            oracleResponses[key].responses[statusCode].length == MIN_RESPONSES
         ) {
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
