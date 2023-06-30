@@ -11,8 +11,11 @@ export default class Contract {
       new Web3.providers.WebsocketProvider(config.url.replace("http", "ws"))
     );
 
-    // Keeps track of the latest information returned from the event emitted by the contract.
+    // Keeps track of the latest information returned from the flight status event emitted by the contract.
     this.flightStatusInfo = null;
+
+    // Keeps track of the latest information returned from the creditInsurees event emitted by the contract.
+    this.creditInsureesInfo = null;
 
     // Creates a new instance of event emitter.
     this.events = new EventEmitter();
@@ -53,6 +56,15 @@ export default class Contract {
           return;
         }
         console.log("Received a FlightStatusInfo event: ", event);
+      });
+
+      // Start listening for creditInsurees events
+      this.listenToCreditInsureesInfoEvent((err, event) => {
+        if (err) {
+          console.error("Error in CreditInsureeInfo event: ", err);
+          return;
+        }
+        console.log("Received a CreditInsureeInfo event: ", event);
       });
     } catch (error) {
       console.error("Failed to initialize:", error);
@@ -173,6 +185,18 @@ export default class Contract {
     }
   }
 
+  async pay(flightKey, passengerAccount) {
+    let self = this;
+    try {
+      const result = await self.flightSuretyApp.methods
+        .pay(flightKey)
+        .send({ from: passengerAccount, gas: 200000 });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async isRegisteredPassenger(account) {
     let self = this;
     try {
@@ -202,9 +226,31 @@ export default class Contract {
       .on("error", callback);
   }
 
+  // Event listener for updated credit insurees emitted by contract.
+  listenToCreditInsureesInfoEvent(callback) {
+    this.flightSuretyData.events
+      .InsureesCredited({
+        fromBlock: 0,
+      })
+      .on("data", (event) => {
+        this.creditInsureesInfo = event;
+        this.events.emit("CreditInsureesInfoReceived", event);
+      })
+      .on("changed", (event) => {
+        this.creditInsureesInfo = event;
+        this.events.emit("CreditInsureesInfoReceived", event);
+      })
+      .on("error", callback);
+  }
+
   // getter method to retrieve flight status info.
   getFlightStatusInfo() {
     return this.flightStatusInfo;
+  }
+
+  // getter method to retrieve credit insurees info.
+  getCreditInsureesInfo() {
+    return this.creditInsureesInfo;
   }
 }
 

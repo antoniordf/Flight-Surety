@@ -108,6 +108,16 @@ flightSuretyData.events.InsureesCredited(
   (error, event) => {
     if (error) console.log(error);
     console.log(event);
+
+    // Retrieve credit information from the event
+    const flightKey = event.returnValues.flightKey;
+    console.log("Here is the flightKey", flightKey);
+    const airline = event.returnValues.airline;
+    console.log("Here is the airline", airline);
+    const flight = event.returnValues.flight;
+    console.log("Here is the flight", flight);
+    const credit = event.returnValues.credit;
+    console.log("Here is the credit", credit);
   }
 );
 

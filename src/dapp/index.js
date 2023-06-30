@@ -84,6 +84,45 @@ const account = accounts[0];
           },
         ]);
       });
+
+      // Listen for the CreditInsureesInfoReceived event
+      contract.events.once("CreditInsureesInfoReceived", async () => {
+        // Get the credit information
+        const creditInsureesInfo = await contract.getCreditInsureesInfo();
+        console.log("I am printing from index.js", creditInsureesInfo);
+
+        // Retrieve credit information from the event
+        const flightKey = creditInsureesInfo.returnValues.flightKey;
+
+        // Find the flight card
+        const flightCards = document.querySelectorAll(".card");
+
+        flightCards.forEach((flightCard) => {
+          const flightKeyCard = flightCard.dataset.flightKey;
+
+          if (flightKey === flightKeyCard) {
+            // Create "withdraw credit" button
+            const withdrawButton = DOM.button(
+              { className: "btn btn-warning" },
+              "withdraw-credit"
+            );
+
+            // Click event listener
+            withdrawButton.addEventListener("click", async (event) => {
+              event.preventDefault();
+
+              try {
+                await contract.pay(flightKey, account);
+              } catch (error) {
+                console.error(error);
+              }
+            });
+
+            // Insert the "withdraw credit" button before the "buy insurance" button
+            flightCard.insertBefore(withdrawButton, flightCard.lastChild);
+          }
+        });
+      });
     } catch (error) {
       console.error(error);
       display("Oracles", "Trigger oracles", [
@@ -190,12 +229,16 @@ const account = accounts[0];
     );
 
     // Create flightKey in the same way as the contract does
-    let flightKey = web3.utils.soliditySha3(
-      { t: "address", v: flight.airlineAddress }, // assuming flight.airlineAddress is available
-      { t: "string", v: flight.flightNumber },
-      { t: "uint256", v: timestampInSeconds } // ensure this timestamp is in the right format
+    const flightKey = createFlightKey(
+      flight.airlineAddress,
+      flight.flightNumber,
+      timestampInSeconds
     );
 
+    // Assign the flightKey as a data attribute of the card
+    flightCard.dataset.flightKey = flightKey;
+
+    // Create the buy button
     const buyButton = DOM.button(
       { className: "btn btn-primary" },
       "Buy Insurance"
@@ -317,4 +360,13 @@ function displayDate(timestamp) {
     day + "/" + month + "/" + year + " " + hours + ":" + minutes;
 
   return formattedTime;
+}
+
+function createFlightKey(airlineAddress, flightNumber, timestamp) {
+  let flightKey = web3.utils.soliditySha3(
+    { t: "address", v: airlineAddress }, // assuming flight.airlineAddress is available
+    { t: "string", v: flightNumber },
+    { t: "uint256", v: timestamp } // ensure this timestamp is in the right format
+  );
+  return flightKey;
 }
