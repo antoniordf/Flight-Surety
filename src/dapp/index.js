@@ -133,42 +133,40 @@ const account = accounts[0];
 
   // For each flight, I fund the contract, register the airline and register the flight
   try {
-    await Promise.all(
-      flights.map(async (flight) => {
-        // Get airlines to fund contract.
-        let fundResult;
-        try {
-          fundResult = await contract.fund(flight.addressIndex);
-          console.log("I have funded the airline", fundResult);
-        } catch (error) {
-          console.error(error);
-        }
+    for (const flight of flights) {
+      // Get airlines to fund contract.
+      let fundResult;
+      try {
+        fundResult = await contract.fund(flight.addressIndex);
+        console.log("I have funded the airline", fundResult);
+      } catch (error) {
+        console.error(error);
+      }
 
-        // Register the airlines
-        let registerAirlineResult;
-        try {
-          registerAirlineResult = await contract.registerAirline(
-            flight.addressIndex
-          );
-          console.log("I have registered the airline", registerAirlineResult);
-        } catch (error) {
-          console.error("Error generated while registering airline", error);
-        }
+      // Register the airlines
+      let registerAirlineResult;
+      try {
+        registerAirlineResult = await contract.registerAirline(
+          flight.addressIndex
+        );
+        console.log("I have registered the airline", registerAirlineResult);
+      } catch (error) {
+        console.error("Error generated while registering airline", error);
+      }
 
-        // Register the flights
-        let registerFlightResult;
-        try {
-          registerFlightResult = await contract.registerFlight(
-            flight.addressIndex,
-            flight.flightNumber,
-            flight.timestamp
-          );
-          console.log("I have registered the flight", registerFlightResult);
-        } catch (error) {
-          console.error("Error generated while registering flight", error);
-        }
-      })
-    );
+      // Register the flights
+      let registerFlightResult;
+      try {
+        registerFlightResult = await contract.registerFlight(
+          flight.addressIndex,
+          flight.flightNumber,
+          flight.timestamp
+        );
+        console.log("I have registered the flight", registerFlightResult);
+      } catch (error) {
+        console.error("Error generated while registering flight", error);
+      }
+    }
   } catch (error) {
     console.log(error);
   }
