@@ -206,7 +206,7 @@ contract FlightSuretyApp {
             flightSuretyData.isPassenger(msg.sender),
             "You are not a passenger"
         );
-        flightSuretyData.buy(_flightKey, msg.sender);
+        flightSuretyData.buy{value: msg.value}(_flightKey, msg.sender);
     }
 
     /**
@@ -247,7 +247,7 @@ contract FlightSuretyApp {
             flights[flightKey].statusCode = _statusCode;
             flights[flightKey].updatedTimestamp = _timestamp;
 
-            flightSuretyData.creditInsurees(flightKey);
+            flightSuretyData.creditInsurees(flightKey, _airline, _flight);
         }
     }
 
@@ -477,7 +477,11 @@ interface IFlightSuretyData {
 
     function isPassenger(address passenger) external view returns (bool);
 
-    function creditInsurees(bytes32 _flightKey) external;
+    function creditInsurees(
+        bytes32 _flightKey,
+        address _airline,
+        string memory _flight
+    ) external;
 
     function fund(address _caller) external payable;
 }

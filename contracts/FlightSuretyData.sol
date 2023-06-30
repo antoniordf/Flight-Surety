@@ -64,10 +64,19 @@ contract FlightSuretyData {
     event ProposalCreated(bytes32 indexed proposalId);
     event ProposalPassed(bytes32 indexed proposalId);
     event ProposalExpired(bytes32 indexed proposalId);
-    event InsuranceBought(bytes32 indexed flightKey);
+    event InsuranceBought(
+        bytes32 indexed flightKey,
+        uint256 indexed insuranceAmount
+    );
     event PassengerRegistered(address indexed passengerAddress);
     event AirlineRegistered(address indexed airline);
-    event InsureesCredited(bytes32 indexed flightKey);
+    event InsureesCredited(
+        bytes32 indexed flightKey,
+        address indexed airline,
+        string flight,
+        address indexed passengerAddress,
+        uint256 credit
+    );
     event PaymentMade(bytes32 indexed flightKey, address indexed caller);
     event AccountFunded(address indexed caller);
 
@@ -346,20 +355,32 @@ contract FlightSuretyData {
         require(msg.value <= 1 ether, "You can only insure up to 1 ether");
         flightInsurees[_flightKey].push(_caller);
         flightInsuranceAmounts[_flightKey][_caller] = msg.value;
-        emit InsuranceBought(_flightKey);
+        uint256 _insuranceAmount = flightInsuranceAmounts[_flightKey][_caller];
+        emit InsuranceBought(_flightKey, _insuranceAmount);
     }
 
     /**
      *  @dev Credits payouts to insurees. Credit is equal to 1.5 x the insurance amount bought.
      */
-    function creditInsurees(bytes32 _flightKey) external isAuthorized {
+    function creditInsurees(
+        bytes32 _flightKey,
+        address _airline,
+        string memory _flight
+    ) external isAuthorized {
         for (uint i = 0; i < flightInsurees[_flightKey].length; i++) {
             address passengerAddress = flightInsurees[_flightKey][i];
-            passengers[passengerAddress].credit =
-                (flightInsuranceAmounts[_flightKey][passengerAddress] * 3) /
-                2;
+            uint256 credit = (flightInsuranceAmounts[_flightKey][
+                passengerAddress
+            ] * 3) / 2;
+            passengers[passengerAddress].credit = credit;
+            emit InsureesCredited(
+                _flightKey,
+                _airline,
+                _flight,
+                passengerAddress,
+                credit
+            );
         }
-        emit InsureesCredited(_flightKey);
     }
 
     /**

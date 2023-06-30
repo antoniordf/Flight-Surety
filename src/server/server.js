@@ -91,6 +91,16 @@ flightSuretyApp.events.OracleRequest(
   }
 );
 
+flightSuretyData.events.InsuranceBought(
+  {
+    fromBlock: 0,
+  },
+  (error, event) => {
+    if (error) console.log(error);
+    console.log(event);
+  }
+);
+
 flightSuretyData.events.InsureesCredited(
   {
     fromBlock: 0,
