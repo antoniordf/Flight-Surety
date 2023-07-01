@@ -56,7 +56,6 @@ function registerEventListeners(contract) {
       contract.events.once("FlightStatusInfoReceived", async () => {
         // Update flight status
         const flightStatusInfo = await contract.getFlightStatusInfo();
-        console.log("I am printing from index.js", flightStatusInfo);
 
         // Display updated information to browser
         let flight = flightStatusInfo.returnValues.flight;
@@ -74,7 +73,6 @@ function registerEventListeners(contract) {
       contract.events.once("CreditInsureesInfoReceived", async () => {
         // Get the credit information
         const creditInsureesInfo = await contract.getCreditInsureesInfo();
-        console.log("I am printing from index.js", creditInsureesInfo);
 
         // Retrieve credit information from the event
         const flightKey = creditInsureesInfo.returnValues.flightKey;
@@ -129,7 +127,7 @@ function registerEventListeners(contract) {
 
   // Check operational status
   let operationalStatus = await contract.isOperational();
-  console.log(operationalStatus);
+
   DOM.display("Operational Status", "Check if contract is operational", [
     { label: "Operational Status", error: null, value: operationalStatus },
   ]);
