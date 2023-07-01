@@ -1,29 +1,15 @@
 import DOM from "./dom";
+import web3 from "./web3";
 import Contract from "./contract";
 import "./flightsurety.css";
-const Web3 = require("web3");
-const web3 = new Web3(window.ethereum);
+import { displayStatusMessage, displayDate, createFlightKey } from "./utils.js";
 
 const accounts = await window.ethereum.request({
   method: "eth_requestAccounts",
 });
 const account = accounts[0];
 
-(async () => {
-  let contract = new Contract("localhost");
-
-  await contract.initialize();
-
-  // Check operational status
-  let operationalStatus = await contract.isOperational();
-  console.log(operationalStatus);
-  display("Operational Status", "Check if contract is operational", [
-    { label: "Operational Status", error: null, value: operationalStatus },
-  ]);
-
-  // Check if user is registered as a passenger
-  const isRegistered = await contract.isRegisteredPassenger(account);
-
+function registerEventListeners(contract) {
   // Register as Passenger
   DOM.elid("register-passenger").addEventListener("click", async (event) => {
     event.preventDefault();
@@ -33,15 +19,14 @@ const account = accounts[0];
     const originalButtonHTML = button.innerHTML;
 
     // Show spinner
-    button.innerHTML =
-      '<img src="https://giphy.com/embed/3oEjI6SIIHBdRxXI40" width="20px" height="20px">';
+    DOM.showSpinner(button);
     button.disabled = true;
 
     try {
       await contract.registerPassenger(account);
 
       // Display result to user
-      displayMessage("Passenger registered successfully!");
+      DOM.displayMessage("Passenger registered successfully!");
 
       // Once registered, enable all buy buttons
       const buyButtons = document.querySelectorAll(".btn-primary");
@@ -50,7 +35,7 @@ const account = accounts[0];
       });
     } catch (error) {
       console.error(error);
-      displayMessage("Passenger registration failed!");
+      DOM.displayMessage("Passenger registration failed!");
     } finally {
       // Hide spinner and revert button state
       button.innerHTML = originalButtonHTML;
@@ -77,7 +62,7 @@ const account = accounts[0];
         let flight = flightStatusInfo.returnValues.flight;
         let timestamp = displayDate(flightStatusInfo.returnValues.timestamp);
         let status = displayStatusMessage(flightStatusInfo.returnValues.status);
-        display("Oracles", "Trigger oracles", [
+        DOM.display("Oracles", "Trigger oracles", [
           {
             label: "Fetch Flight Status",
             value: flight + " " + timestamp + " " + status,
@@ -113,6 +98,8 @@ const account = accounts[0];
 
               try {
                 await contract.pay(flightKey, account);
+                withdrawButton.disabled = true;
+                DOM.displayMessage("A payment has been made to your wallet");
               } catch (error) {
                 console.error(error);
               }
@@ -125,7 +112,7 @@ const account = accounts[0];
       });
     } catch (error) {
       console.error(error);
-      display("Oracles", "Trigger oracles", [
+      DOM.display("Oracles", "Trigger oracles", [
         {
           label: "An error has occurred",
           value: error.message,
@@ -133,6 +120,25 @@ const account = accounts[0];
       ]);
     }
   });
+}
+
+(async () => {
+  let contract = new Contract("localhost");
+
+  await contract.initialize();
+
+  // Check operational status
+  let operationalStatus = await contract.isOperational();
+  console.log(operationalStatus);
+  DOM.display("Operational Status", "Check if contract is operational", [
+    { label: "Operational Status", error: null, value: operationalStatus },
+  ]);
+
+  // Check if user is registered as a passenger
+  const isRegistered = await contract.isRegisteredPassenger(account);
+
+  // Register as passenger and submit to oracles event listeners
+  registerEventListeners(contract);
 
   // Flights
   const flights = [
@@ -252,8 +258,7 @@ const account = accounts[0];
 
       // Save current button state and show spinner
       const originalButtonHTML = buyButton.innerHTML;
-      buyButton.innerHTML =
-        '<img src="https://giphy.com/embed/3oEjI6SIIHBdRxXI40" width="20px" height="20px">';
+      DOM.showSpinner(buyButton);
       buyButton.disabled = true;
 
       try {
@@ -269,10 +274,10 @@ const account = accounts[0];
         // inform the user of insurance purchase
         buyButton.style.backgroundColor = "green";
         buyButton.innerText = "Purchased";
-        displayMessage("Insurance purchased successfully!");
+        DOM.displayMessage("Insurance purchased successfully!");
       } catch (error) {
         console.error(error);
-        displayMessage("Insurance purchase failed!");
+        DOM.displayMessage("Insurance purchase failed!");
 
         // Hide spinner and revert button state
         buyButton.innerHTML = originalButtonHTML;
@@ -293,80 +298,3 @@ const account = accounts[0];
     }
   });
 })();
-
-//******************************************************************************
-//                             HELPER FUNCTIONS
-//******************************************************************************
-
-function display(title, description, results) {
-  let displayDiv = DOM.elid("display-wrapper");
-  let section = DOM.section();
-  section.appendChild(DOM.h2(title));
-  section.appendChild(DOM.h5(description));
-  results.map((result) => {
-    let row = section.appendChild(DOM.div({ className: "row" }));
-    row.appendChild(DOM.div({ className: "col-sm-4 field" }, result.label));
-    row.appendChild(
-      DOM.div(
-        { className: "col-sm-8 field-value" },
-        result.error ? String(result.error) : String(result.value)
-      )
-    );
-    section.appendChild(row);
-  });
-  displayDiv.append(section);
-}
-
-function displayMessage(message) {
-  const messageBox = DOM.elid("message-box");
-  messageBox.style.display = "block";
-  messageBox.innerHTML = message;
-  setTimeout(() => {
-    messageBox.style.display = "none";
-  }, 3000); // Hide the message box after 3 seconds
-}
-
-function displayStatusMessage(statusCode) {
-  const statusCodes = {
-    0: "STATUS_CODE_UNKNOWN",
-    10: "ON TIME",
-    20: "AIRLINE DELAYED",
-    30: "DELAYED DUE TO WEATHER",
-    40: "DELAYED DUE TO TECHNICAL ISSUES",
-    50: "DELAYED DUE TO OTHER",
-  };
-
-  return statusCodes[statusCode];
-}
-
-function displayDate(timestamp) {
-  let date = new Date(timestamp * 1000);
-
-  let day = date.getDate();
-  let month = date.getMonth() + 1; // Javascript months are 0-based indexing
-  let year = date.getFullYear();
-
-  // Getting the hours and minutes
-  let hours = date.getHours();
-  let minutes = date.getMinutes();
-
-  // Ensure leading zero if day or month or hours or minutes is less than 10
-  day = day < 10 ? "0" + day : day;
-  month = month < 10 ? "0" + month : month;
-  hours = hours < 10 ? "0" + hours : hours;
-  minutes = minutes < 10 ? "0" + minutes : minutes;
-
-  let formattedTime =
-    day + "/" + month + "/" + year + " " + hours + ":" + minutes;
-
-  return formattedTime;
-}
-
-function createFlightKey(airlineAddress, flightNumber, timestamp) {
-  let flightKey = web3.utils.soliditySha3(
-    { t: "address", v: airlineAddress }, // assuming flight.airlineAddress is available
-    { t: "string", v: flightNumber },
-    { t: "uint256", v: timestamp } // ensure this timestamp is in the right format
-  );
-  return flightKey;
-}
