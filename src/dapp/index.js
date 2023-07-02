@@ -2,7 +2,12 @@ import DOM from "./dom";
 import web3 from "./web3";
 import Contract from "./contract";
 import "./flightsurety.css";
-import { displayStatusMessage, displayDate, createFlightKey } from "./utils.js";
+import {
+  displayStatusMessage,
+  displayDate,
+  createFlightKey,
+  unixTimestamp,
+} from "./utils.js";
 
 const accounts = await window.ethereum.request({
   method: "eth_requestAccounts",
@@ -181,7 +186,6 @@ function registerEventListeners(contract) {
       let fundResult;
       try {
         fundResult = await contract.fund(flight.addressIndex);
-        console.log("I have funded the airline", fundResult);
       } catch (error) {
         console.error(error);
       }
@@ -192,7 +196,6 @@ function registerEventListeners(contract) {
         registerAirlineResult = await contract.registerAirline(
           flight.addressIndex
         );
-        console.log("I have registered the airline", registerAirlineResult);
       } catch (error) {
         console.error("Error generated while registering airline", error);
       }
@@ -205,7 +208,6 @@ function registerEventListeners(contract) {
           flight.flightNumber,
           flight.timestamp
         );
-        console.log("I have registered the flight", registerFlightResult);
       } catch (error) {
         console.error("Error generated while registering flight", error);
       }
@@ -228,9 +230,7 @@ function registerEventListeners(contract) {
     flightCard.appendChild(flightInfo);
 
     // Converting the timestamp to Unix format
-    let timestampInSeconds = Math.floor(
-      new Date(flight.timestamp).getTime() / 1000
-    );
+    let timestampInSeconds = unixTimestamp(flight.timestamp);
 
     // Create flightKey in the same way as the contract does
     const flightKey = createFlightKey(

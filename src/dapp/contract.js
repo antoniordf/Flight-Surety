@@ -3,6 +3,7 @@ import FlightSuretyData from "../../build/contracts/FlightSuretyData.json";
 import Config from "./config.json";
 import Web3 from "web3";
 import { EventEmitter } from "events";
+import { unixTimestamp } from "./utils.js";
 
 export default class Contract {
   constructor(network) {
@@ -108,6 +109,7 @@ export default class Contract {
       const result = await self.flightSuretyApp.methods.fund().send({
         value: self.web3.utils.toWei("10", "ether"), // Convert to Wei
         from: self.airlines[addressIndex],
+        gas: 200000,
       });
       return result;
     } catch (error) {
@@ -157,7 +159,7 @@ export default class Contract {
       let payload = {
         airline: self.airlines[addressIndex],
         flight: flightNumber,
-        timestamp: convertTimestamp(timestamp),
+        timestamp: unixTimestamp(timestamp),
       };
 
       if (registered) {
@@ -252,14 +254,4 @@ export default class Contract {
   getCreditInsureesInfo() {
     return this.creditInsureesInfo;
   }
-}
-
-//******************************************************************************
-//                             HELPER FUNCTIONS
-//******************************************************************************
-
-function convertTimestamp(timestamp) {
-  const convertedTimestamp = new Date(timestamp);
-  const unixTimestamp = Math.floor(convertedTimestamp.getTime() / 1000);
-  return unixTimestamp;
 }

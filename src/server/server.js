@@ -99,12 +99,6 @@ flightSuretyData.events.InsureesCredited(
   (error, event) => {
     if (error) console.log(error);
     console.log(event);
-
-    // Retrieve credit information from the event
-    const flightKey = event.returnValues.flightKey;
-    const airline = event.returnValues.airline;
-    const flight = event.returnValues.flight;
-    const credit = event.returnValues.credit;
   }
 );
 
@@ -158,7 +152,7 @@ async function processOracleResponse(
 function generateRandomStatus() {
   const statusCodes = [0, 10, 20, 30, 40, 50];
   const randomIndex = Math.floor(Math.random() * statusCodes.length);
-  return 20; // statusCodes[randomIndex];
+  return statusCodes[randomIndex];
 }
 
 //******************************************************************************

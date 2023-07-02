@@ -48,3 +48,8 @@ export function createFlightKey(airlineAddress, flightNumber, timestamp) {
   );
   return flightKey;
 }
+
+// Converting the timestamp to Unix format
+export function unixTimestamp(timestamp) {
+  return Math.floor(new Date(timestamp).getTime() / 1000);
+}
